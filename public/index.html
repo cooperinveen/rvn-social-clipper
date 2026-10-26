@@ -47,27 +47,26 @@
   <section class="panel">
     <h2><span class="step">3</span> Make the video</h2>
     <div class="bar">
-      <div class="seg-group"><span class="seg-label">Format</span>
-        <div class="seg"><label><input type="radio" name="format" value="60i" checked><span>60i</span></label><label><input type="radio" name="format" value="50i"><span>50i</span></label></div>
+      <div class="seg-group" id="openingSet"><span class="seg-label">Opening shot</span>
+        <div class="seg"><label><input type="radio" name="opening" value="top" checked><span>Top of post</span></label><label id="openingFit"><input type="radio" name="opening" value="fit"><span>Whole post</span></label></div>
       </div>
+    </div>
+    <div class="bar">
       <div class="seg-group"><span class="seg-label">Opening hold</span>
         <div class="seg"><label><input type="radio" name="base" value="10" checked><span>10s</span></label><label><input type="radio" name="base" value="20"><span>20s</span></label><label><input type="radio" name="base" value="30"><span>30s</span></label></div>
       </div>
+      <div class="seg-group"><span class="seg-label">Format</span>
+        <div class="seg"><label><input type="radio" name="format" value="60i" checked><span>60i</span></label><label><input type="radio" name="format" value="50i"><span>50i</span></label></div>
+      </div>
     </div>
-    <div class="opts">
-      <fieldset id="openingSet"><legend>Opening shot</legend>
-        <label class="check" id="openingFit"><input type="radio" name="opening" value="fit" checked> Whole post, shrunk to fit</label>
-        <label class="check"><input type="radio" name="opening" value="top"> Top of the post, fading out</label>
-        <p class="hint" id="openingHint"></p>
-      </fieldset>
-      <fieldset id="motion"><legend>Movement <span class="light" id="motionNote">(long posts only)</span></legend>
-        <label class="check"><input type="checkbox" id="zoom"> Zoom in <span class="light">+10s</span></label>
-        <label class="check"><input type="checkbox" id="scroll"> Scroll to the end</label>
-        <label class="inline small" id="scrollLenRow" hidden>Scroll takes
-          <select id="scrollSeconds"></select>
-        </label>
-        <p class="hint" id="scrollHint"></p>
-      </fieldset>
+    <div class="bar">
+      <div class="seg-group" id="motion"><span class="seg-label">Movement</span>
+        <div class="seg"><label title="Scroll down to the end of the post"><input type="checkbox" id="scroll"><span>↓ Scroll</span></label></div>
+        <div class="seg-group off" id="scrollOpts">
+          <div class="seg"><label title="Cut straight from the opening shot to the start of the scroll. Two shots in the shotlist."><input type="radio" name="approach" value="cut" checked disabled><span>Straight cut</span></label><label title="Zoom in from the opening shot to the start of the scroll, adding 10 seconds. One shot in the shotlist."><input type="radio" name="approach" value="zoom" disabled><span>Zoom in +10s</span></label></div>
+          <select id="scrollSeconds" class="seg-select" disabled></select>
+        </div>
+      </div>
     </div>
     <button class="btn btn-primary btn-large" id="makeBtn" type="button" disabled>Create video</button>
     <div class="msg" id="makeMsg" hidden></div>
@@ -86,7 +85,7 @@
   </section>
 
   <section class="panel panel-wide" id="shotlistPanel" hidden>
-    <h2><span class="step">5</span> Suggested shotlist <span class="warn-text">— may contain errors - check it before you copy</span></h2>
+    <h2><span class="step">5</span> Suggested shotlist <span class="light">— may contain errors; verify before use</span></h2>
     <div id="shotlistBody">
       <div class="quad">
         <label>Title<input type="text" id="slTitle" autocomplete="off" placeholder="e.g. US PRESIDENT"></label>

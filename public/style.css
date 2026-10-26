@@ -156,7 +156,7 @@ input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); }
 .btn-sm { margin-top: 14px; padding: 8px 18px; font-size: 13px; border-radius: 6px; }
 .btn-large { margin-top: 18px; padding: 16px 36px; font-size: 17px; width: 100%; justify-content: center; }
 .check.disabled { color: #9aa0a6; cursor: not-allowed; position: relative; }   /* greyed by colour, not opacity, so the tooltip stays solid */
-.check[data-tip]:hover::after {                       /* hover explanation on an unavailable choice */
+.check[data-tip]:hover::after, .seg label[data-tip]:hover::after {                       /* hover explanation on an unavailable choice */
   content: attr(data-tip);
   position: absolute;
   left: 0;
@@ -229,7 +229,7 @@ input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); }
 /* ── Step 3: options ── */
 .bar { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; margin-bottom: 14px; }
 .seg-group { display: flex; align-items: center; gap: 10px; }
-.seg-label, legend { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--tr-text-light); }
+.seg-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--tr-text-light); }
 .seg { display: inline-flex; gap: 6px; }
 .seg label { margin: 0; cursor: pointer; }
 .seg input { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -244,13 +244,17 @@ input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); }
   border-radius: 16px;
   transition: var(--transition);
 }
+.seg label { position: relative; }
 .seg label:hover span { border-color: var(--tr-orange); background: #fff5f0; }
 .seg input:checked + span { border-color: var(--tr-orange); background: #ffe8dc; color: var(--tr-orange); }
 .seg input:focus-visible + span { outline: 2px solid var(--tr-orange); outline-offset: 2px; }
-.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-fieldset { border: 1px solid var(--tr-border); border-radius: 8px; padding: 6px 14px 10px; margin: 0; }
-legend { padding: 0 6px; }
-fieldset.off { opacity: .55; }
+.seg-group[hidden] { display: none; }
+.seg-group.off { opacity: .45; }
+#scrollOpts.off { pointer-events: none; }
+.seg label.disabled span { color: #9aa0a6; background: #f8f9fa; cursor: not-allowed; }
+.seg label.disabled:hover span { border-color: var(--tr-border); background: #f8f9fa; }
+.seg-select { width: auto; margin: 0; padding: 3px 8px; font-size: 13px; border: 1.5px solid var(--tr-border); border-radius: 16px; background: #fff; cursor: pointer; }
+.seg-select:hover { border-color: var(--tr-orange); background: #fff5f0; }
 
 /* ── Step 4: preview, then the finished video, in one 16:9 stage ── */
 .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #f1f3f5; border: 1px solid var(--tr-border); border-radius: 8px; overflow: hidden; }
@@ -260,7 +264,6 @@ fieldset.off { opacity: .55; }
 
 /* ── Step 5: suggested shotlist (full width; hidden until a post is fetched) ── */
 .panel-wide { grid-column: 1 / -1; }
-.warn-text { color: #c0392b; font-size: 13px; font-weight: 500; }
 .quad { display: grid; grid-template-columns: 2fr 2fr 1.2fr 1.2fr; gap: 12px; }
 @media (max-width: 900px) { .quad { grid-template-columns: 1fr 1fr; } }
 .shotlist {

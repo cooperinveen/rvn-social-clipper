@@ -18,8 +18,8 @@ const HELP = [
     { t: 'Opening hold', b: ['How long the opening shot stays on screen before any highlight, zoom or scroll: 10, 20 or 30 seconds. The highlight always arrives 5 seconds in.'] },
     { t: 'Opening shot', b: ['<strong>Whole post, shrunk to fit</strong> shows all of the post in the frame, however long it is — text gets tiny on long posts.',
       '<strong>Top of the post, fading out</strong> keeps the text readable and fades the bottom edge to show there is more. On a post that fits on one screen the two look the same.'] },
-    { t: 'Movement — long posts only', b: ['<strong>Zoom in</strong> (+10 seconds) pushes in from the opening shot to the top of the post at full size. From “Whole post” it only works on posts under about 4 screens tall; for longer ones choose “Top of the post” or turn Zoom off.',
-      '<strong>Scroll to the end</strong> pans from the top of the post to the last line. Choose how long it takes; the note shows how many lines a second that is — over about 4 is too fast to read.'] },
+    { t: 'Movement — long posts only', b: ['<strong>Scroll to the end</strong> pans from the top of the post to the last line. Choose how long it takes; the note shows how many lines a second that is — over about 4 is too fast to read.',
+      'Scrolling starts from a close-up of the top of the post, so choose how the video gets there: <strong>Straight cut</strong> (the default) jumps from the opening shot to the close-up, which is two shots in the shotlist; <strong>Zoom in</strong> (+10 seconds) pushes in smoothly, which keeps it one shot. Zooming from “Whole post” only works on posts under about 4 screens tall; for longer ones choose “Top of the post” as the opening shot.'] },
   ]},
   { title: 'Preview and download', entries: [
     { t: 'The preview box', b: ['Before you create a video it shows the first frame. After you click <strong>Create video</strong> it plays the finished video in the same place — long scrolls can take a minute or two to render, so keep the tab open.'] },

@@ -9,7 +9,7 @@
 //
 //       "The post, exactly as written…"
 //
-// Highlighted passages are marked in the quote as [START HIGHLIGHT]…[END HIGHLIGHT].
+// Highlighted passages are marked in the quote as [START HIGHLIGHT] … [END HIGHLIGHT] (a space inside each marker).
 // Each CUT is a new shot: a hold that zooms and/or scrolls without a cut is one shot; a hold that
 // cuts straight to a scroll is two. The whole post is quoted once.
 
@@ -91,7 +91,7 @@ export function markHighlights(text, ranges = []) {
   for (const r of [...ranges].sort((a, b) => a.start - b.start)) {
     const start = Math.max(pos, r.start), end = Math.min(text.length, r.end);
     if (end <= start) continue;
-    out += `${text.slice(pos, start)}${HIGHLIGHT_START}${text.slice(start, end)}${HIGHLIGHT_END}`;
+    out += `${text.slice(pos, start)}${HIGHLIGHT_START} ${text.slice(start, end)} ${HIGHLIGHT_END}`;
     pos = end;
   }
   return out + text.slice(pos);
@@ -125,7 +125,7 @@ export function buildShotlist(fields, options = {}) {
 
   const out = [`INTERNET (${date}) (${DATELINE_SOURCE}) (MUTE)`];
   shotsFor(options).forEach((shot, i) => {
-    let line = `${i + 1}. ` + (shot.samePost ? 'SAME POST' : `SCREENSHOT OF ${platform} POST BY ${who}`);
+    let line = `${i + 1}. ` + (shot.samePost ? `SCREENSHOT OF SAME ${name ? name.split(' ').pop() : '[NAME]'} ${platform} POST` : `SCREENSHOT OF ${platform} POST BY ${who}`);
     if (shot.motion) line += `, ${shot.motion}`;
     if (shot.quote && text) {
       line += `, READING (${language}):`;

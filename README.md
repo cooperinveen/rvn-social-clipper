@@ -16,7 +16,7 @@ counts or engagement buttons — on a white matte, so the result drops cleanly u
    page, so it keeps working when those sites change their layout).
 2. **Check** — fix anything the app got wrong or trim a long post, and highlight passages
    directly in the text.
-3. **Choose** — format, opening hold, how the opening shot looks, and optional zoom and scroll
+3. **Choose** — format, opening hold, how the opening shot looks, and an optional scroll (reached by a straight cut or a zoom)
    for long posts.
 4. **Create** — preview the first frame, then render. The finished video plays in the same
    window and downloads as a `.mov`.
@@ -30,7 +30,7 @@ Everything is explained in the app's **Help** button (top right). The short vers
 |---|---|
 | **1. Get the post** | Paste the link and press **Fetch post** (or Enter). |
 | **2. Check the text** | Correct typos or trim. To highlight, select words and click **Highlight** (select highlighted words and click **Remove highlight** to undo). Highlights fade in yellow 5 seconds into the video. Click **Update preview** to see them. |
-| **3. Make the video** | **Format** 60i or 50i · **Opening hold** 10 / 20 / 30 s · **Opening shot** whole post shrunk to fit, or the top of the post fading out · **Zoom in** and **Scroll to the end** (long posts only). |
+| **3. Make the video** | **Format** 60i or 50i · **Opening hold** 10 / 20 / 30 s · **Opening shot** whole post shrunk to fit, or the top of the post fading out · **Scroll to the end** (long posts only), reached by a **Straight cut** (default) or a **Zoom in**. |
 | **4. Preview** | Shows the video's first frame; after **Create video** it plays the result. **Download .mov** saves it. |
 | **5. Shotlist** | Check the **title** (read from the poster's bio when it says so clearly), **name**, **date** and **language**, then **Copy shotlist**. |
 
@@ -59,15 +59,15 @@ INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
     “Let’s talk about this COMPLETE AND TOTAL LOSER, Bill Maher. …”
 ```
 
-- **One shot per cut.** A zoom, or a zoom followed by a scroll, is one continuous shot. Scrolling
-  after a straight cut from the opening shot is two shots (`SAME POST, SCROLLING DOWN`).
+- **One shot per cut.** A zoom into the scroll is one continuous shot. Scrolling
+  after a straight cut from the opening shot is two shots (`SCREENSHOT OF SAME TRUMP TRUTH SOCIAL POST, SCROLLING DOWN`).
 - **The whole post is quoted once**, exactly as written (capitalisation untouched) — on the first
   shot, or on the scroll shot when the opening shot shows only the top of a long post.
 - **Date** is when the post was made: in New York time for Trump's Truth Social posts (so a post
   at 00:00 UTC is dated the day before), and the UTC date for X, which gives no time zone. Change it
   if the poster's local day differs. **Language** is named for every post, English included.
 - **Archive.** A post more than a calendar month old reads `INTERNET (ARCHIVE - AUGUST 15, 2026) …`; the label follows the date if you edit it.
-- **Highlights** are marked in the quote as `[START HIGHLIGHT]…[END HIGHLIGHT]`.
+- **Highlights** are marked in the quote as `[START HIGHLIGHT] … [END HIGHLIGHT]` (with a space inside each marker).
 - Anything the app can't know is shown as a yellow `[PLACEHOLDER]`, never guessed — and **Copy shotlist** refuses until the title, name, date and language are all filled in, with a pop-up saying what's missing.
 
 ## Output

@@ -71,11 +71,11 @@ test('a scroll after a cut is two shots, and the text is not repeated', () => {
   const text = 'Para one.\n\nPara two.';
   const cut = buildShotlist({ ...trump, text }, { scroll: true, openingCut: true });
   assert.match(cut, /^1\. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP$/m);            // no quote on shot 1
-  assert.match(cut, /^2\. SAME POST, SCROLLING DOWN, READING \(English\):$/m);
+  assert.match(cut, /^2\. SCREENSHOT OF SAME TRUMP TRUTH SOCIAL POST, SCROLLING DOWN, READING \(English\):$/m);
   assert.equal((cut.match(/Para one/g) || []).length, 1);
   const whole = buildShotlist({ ...trump, text }, { scroll: true, openingCut: false });
   assert.match(whole, /^1\. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, READING \(English\):$/m);
-  assert.match(whole, /^2\. SAME POST, SCROLLING DOWN$/m);
+  assert.match(whole, /^2\. SCREENSHOT OF SAME TRUMP TRUTH SOCIAL POST, SCROLLING DOWN$/m);
   assert.equal((whole.match(/Para one/g) || []).length, 1);
 });
 
@@ -108,9 +108,9 @@ test('titles: suggested only when the bio clearly says so', () => {
 });
 
 test('highlights are marked in the quote with [START HIGHLIGHT] / [END HIGHLIGHT]', () => {
-  assert.equal(markHighlights('He’s got a Low Rated Show on HBO.', [{ start: 11, end: 25 }]), 'He’s got a [START HIGHLIGHT]Low Rated Show[END HIGHLIGHT] on HBO.');
+  assert.equal(markHighlights('He’s got a Low Rated Show on HBO.', [{ start: 11, end: 25 }]), 'He’s got a [START HIGHLIGHT] Low Rated Show [END HIGHLIGHT] on HBO.');
   assert.equal(markHighlights('abc', []), 'abc');
-  assert.equal(markHighlights('abc def', [{ start: 4, end: 7 }, { start: 0, end: 3 }]), '[START HIGHLIGHT]abc[END HIGHLIGHT] [START HIGHLIGHT]def[END HIGHLIGHT]');
+  assert.equal(markHighlights('abc def', [{ start: 4, end: 7 }, { start: 0, end: 3 }]), '[START HIGHLIGHT] abc [END HIGHLIGHT] [START HIGHLIGHT] def [END HIGHLIGHT]');
   assert.equal(markHighlights('abc', [{ start: 5, end: 9 }]), 'abc');                         // out of range: ignored
 });
 
@@ -118,12 +118,12 @@ test('highlight markers sit in the right place in a built shotlist, and keep a s
   const text = 'Putin does not want it. He does not want it.';
   const start = text.lastIndexOf('does not want it');
   const out = buildShotlist({ platform: 'x', title: '', name: 'Ada', date: '2026-01-02', language: 'English', text, highlights: [{ start, end: start + 16 }] }, {});
-  assert.match(out, /READING \(English\): “Putin does not want it\. He \[START HIGHLIGHT\]does not want it\[END HIGHLIGHT\]\.”$/);
+  assert.match(out, /READING \(English\): “Putin does not want it\. He \[START HIGHLIGHT\] does not want it \[END HIGHLIGHT\]\.”$/);
 });
 
 test('highlight offsets count from the untrimmed text the page sends', () => {
   const out = buildShotlist({ platform: 'x', name: 'Ada', date: '2026-01-02', language: 'English', text: '  \nhello world  ', highlights: [{ start: 9, end: 14 }] }, {});
-  assert.match(out, /“hello \[START HIGHLIGHT\]world\[END HIGHLIGHT\]”/);
+  assert.match(out, /“hello \[START HIGHLIGHT\] world \[END HIGHLIGHT\]”/);
 });
 
 test('a highlight in a long post is marked where it is, and only on the shot that quotes the post', () => {
@@ -131,7 +131,7 @@ test('a highlight in a long post is marked where it is, and only on the shot tha
   const at = text.indexOf('key phrase');
   const out = buildShotlist({ ...trump, text, highlights: [{ start: at, end: at + 10 }] }, { scroll: true, openingCut: true });
   assert.equal((out.match(/\[START HIGHLIGHT\]/g) || []).length, 1);
-  assert.match(out, /\n    Second paragraph with a \[START HIGHLIGHT\]key phrase\[END HIGHLIGHT\] inside it\.”$/);
+  assert.match(out, /\n    Second paragraph with a \[START HIGHLIGHT\] key phrase \[END HIGHLIGHT\] inside it\.”$/);
 });
 
 test('archive: a date more than a calendar month old is labelled; exactly one month is not', () => {

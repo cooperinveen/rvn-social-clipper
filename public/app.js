@@ -5,6 +5,8 @@ import { buildShotlist, localDate, languageName, shotlistName, normalizeTitle, n
 
 const $ = id => document.getElementById(id);
 const checked = name => document.querySelector(`input[name=${name}]:checked`).value;
+// Zoom is how the video gets to the scroll (the alternative is a straight cut); it only exists with Scroll.
+const zoomOn = () => $('scroll').checked && checked('approach') === 'zoom';
 
 const state = {
   post: null,       // the fetched post: { name, handle, ... }
@@ -233,7 +235,7 @@ function shotlistText() {
     platform: state.post.platform,
     title: $('slTitle').value, name: $('slName').value, date: $('slDate').value, language: $('slLang').value,
     text: readBox().text, highlights: readBox().ranges,
-  }, { zoom: $('zoom').checked, scroll: $('scroll').checked, openingCut });
+  }, { zoom: zoomOn(), scroll: $('scroll').checked, openingCut });
 }
 
 function updateShotlist() {
@@ -294,10 +296,10 @@ function applyPlan(plan, cardHeight) {
   state.cardHeight = cardHeight;
   const can = plan.canMotion;
   $('motion').classList.toggle('off', !can);
-  $('zoom').disabled = !can;
   $('scroll').disabled = !can;
-  if (!can) { $('zoom').checked = false; $('scroll').checked = false; $('scrollLenRow').hidden = true; }
-  $('motionNote').textContent = can ? '' : '(this post fits on screen, so there is nothing to scroll)';
+  if (!can) $('scroll').checked = false;
+  syncScrollOpts();
+  $('motion').title = can ? '' : 'This post fits on screen, so there is nothing to scroll.';
 
   const sel = $('scrollSeconds');
   const keep = sel.value;
@@ -305,7 +307,7 @@ function applyPlan(plan, cardHeight) {
   sel.innerHTML = options.map(([v, label]) => `<option value="${v}">${label}</option>`).join('');
   if (options.some(([v]) => v === keep)) sel.value = keep;
 
-  $('openingHint').textContent = plan.overviewRows < cardHeight
+  $('openingSet').title = plan.overviewRows < cardHeight
     ? `This post is about ${(cardHeight / 1080).toFixed(1)} screens tall. “Whole post” shrinks all of it into the frame; “Top of the post” stays readable and fades to show there is more.`
     : 'This post fits on one screen, so both choices look the same.';
   updateScrollHint();
@@ -317,7 +319,7 @@ function applyPlan(plan, cardHeight) {
 const ZOOM_LIMIT_TIP = 'Zoom can only start from the whole post when it is under about 4 screens tall. Pick “Top of the post” as the opening shot, or turn Zoom off.';
 function checkZoomLimit() {
   const p = state.plan;
-  const limited = !!p && state.cardHeight > p.zoomFitMaxRows && $('zoom').checked;
+  const limited = !!p && state.cardHeight > p.zoomFitMaxRows && zoomOn();
   const fit = $('openingFit');
   fit.querySelector('input').disabled = limited;
   fit.classList.toggle('disabled', limited);
@@ -332,16 +334,22 @@ function checkZoomLimit() {
 
 function updateScrollHint() {
   const p = state.plan;
-  if (!p || !p.canMotion) { $('scrollHint').textContent = ''; return; }
+  if (!p || !p.canMotion) { $('scrollSeconds').title = ''; return; }
   const secs = $('scrollSeconds').value === 'auto' ? p.autoScrollSeconds : Number($('scrollSeconds').value);
   const linesPerSec = p.pan / secs / 54;              // one line of card text is about 54px
-  $('scrollHint').textContent = `${Math.round(p.pan / 1080 * 10) / 10} screens to scroll through — at ${secs}s that is about ${linesPerSec.toFixed(1)} lines a second.`
+  $('scrollSeconds').title = `${Math.round(p.pan / 1080 * 10) / 10} screens to scroll through — at ${secs}s that is about ${linesPerSec.toFixed(1)} lines a second.`
     + (linesPerSec > 4 ? ' Too fast to read; pick a longer time if viewers need to follow along.' : '');
 }
 
 $('scrollSeconds').onchange = updateScrollHint;
-$('zoom').onchange = () => { checkZoomLimit(); updateShotlist(); };
-$('scroll').onchange = () => { $('scrollLenRow').hidden = !$('scroll').checked; updateShotlist(); };
+document.querySelectorAll('input[name=approach]').forEach(r => r.addEventListener('change', () => { checkZoomLimit(); updateShotlist(); }));
+// The scroll choices stay visible but greyed (and unclickable) until Scroll is ticked.
+function syncScrollOpts() {
+  const on = $('scroll').checked;
+  $('scrollOpts').classList.toggle('off', !on);
+  $('scrollOpts').querySelectorAll('input, select').forEach(el => { el.disabled = !on; });
+}
+$('scroll').onchange = () => { syncScrollOpts(); checkZoomLimit(); updateShotlist(); };
 document.querySelectorAll('input[name=opening]').forEach(r => r.addEventListener('change', () => {
   checkZoomLimit();
   updateShotlist();
@@ -397,7 +405,7 @@ $('makeBtn').onclick = async () => {
       format: checked('format'),
       opening: checked('opening'),
       baseSeconds: Number(checked('base')),
-      zoom: $('zoom').checked,
+      zoom: zoomOn(),
       scroll: $('scroll').checked,
       scrollSeconds: $('scroll').checked ? $('scrollSeconds').value : undefined,
     });
