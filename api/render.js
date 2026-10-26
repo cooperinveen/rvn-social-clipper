@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     }
 
     const { card, post } = await buildCard(body.token, body.text, body.highlights);
-    out = path.join(os.tmpdir(), `svm-${crypto.randomUUID()}.mov`);
+    out = path.join(os.tmpdir(), `social-video-${crypto.randomUUID()}.mov`);
     const result = await renderVideo(card.clean, {
       format, opening, baseSeconds, scrollSeconds,
       zoom: !!body.zoom, scroll: !!body.scroll,

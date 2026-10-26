@@ -1,4 +1,4 @@
-# Contributing to Social Video Maker
+# Contributing to Social Video Generator
 
 This is the video desk's tool for turning an X or Truth Social post into a broadcast-ready
 video — a small Node app (plain `(req, res)` handlers plus a vanilla-JS page) that fetches a

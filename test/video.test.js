@@ -9,7 +9,7 @@ import { renderVideo, planFor, openingFrame, ffmpegPath, CONFIG, OUT_W } from '.
 
 // These render real (short) videos with the bundled ffmpeg — no browser or network needed.
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'svm-test-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'social-video-test-'));
 process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }));
 
 // A white card of the given height, with a dark block 200px wide whose width we can measure.

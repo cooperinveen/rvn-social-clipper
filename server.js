@@ -34,4 +34,4 @@ http.createServer(async (req, res) => {
     res.setHeader('content-type', TYPES[path.extname(file)] || 'application/octet-stream');
     fs.createReadStream(file).pipe(res);
   } catch (e) { console.error(e); if (!res.headersSent) res.statusCode = 500; res.end('Server error'); }
-}).listen(PORT, '127.0.0.1', () => console.log(`Social Video Maker → http://localhost:${PORT}`));
+}).listen(PORT, '127.0.0.1', () => console.log(`Social Video Generator → http://localhost:${PORT}`));

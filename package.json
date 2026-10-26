@@ -1,5 +1,5 @@
 {
-  "name": "social-video-maker",
+  "name": "social-video-generator",
   "version": "1.0.0",
   "description": "Turn an X or Truth Social post into a broadcast-ready 1080i video.",
   "private": true,
