@@ -20,6 +20,7 @@ counts or engagement buttons — on a white matte, so the result drops cleanly u
    for long posts.
 4. **Create** — preview the first frame, then render. The finished video plays in the same
    window and downloads as a `.mov`.
+5. **Shotlist** — a suggested Reuters shotlist is written alongside, ready to copy into the edit.
 
 ## Using It (day-to-day)
 
@@ -31,6 +32,7 @@ Everything is explained in the app's **Help** button (top right). The short vers
 | **2. Check the text** | Correct typos or trim. To highlight, select words and click **Highlight** (select highlighted words and click **Remove highlight** to undo). Highlights fade in yellow 5 seconds into the video. Click **Update preview** to see them. |
 | **3. Make the video** | **Format** 60i or 50i · **Opening hold** 10 / 20 / 30 s · **Opening shot** whole post shrunk to fit, or the top of the post fading out · **Zoom in** and **Scroll to the end** (long posts only). |
 | **4. Preview** | Shows the video's first frame; after **Create video** it plays the result. **Download .mov** saves it. |
+| **5. Shotlist** | Check the **title** (read from the poster's bio when it says so clearly), **name**, **date** and **language**, then **Copy shotlist**. |
 
 Long posts can take a minute or two to render — keep the tab open.
 
@@ -43,6 +45,30 @@ Long posts can take a minute or two to render — keep the tab open.
 
 The name, handle, profile picture and verified badge always come from the post and can't be
 changed. The text can be corrected or trimmed but not rewritten (see CONTRIBUTING.md §2.1).
+
+### The suggested shotlist
+
+Written in the page from the post and the options you chose, following the RVN social-media
+screenshot guidance:
+
+```
+INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
+
+1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, ZOOMING IN AND SCROLLING DOWN, READING (English):
+
+    “Let’s talk about this COMPLETE AND TOTAL LOSER, Bill Maher. …”
+```
+
+- **One shot per cut.** A zoom, or a zoom followed by a scroll, is one continuous shot. Scrolling
+  after a straight cut from the opening shot is two shots (`SAME POST, SCROLLING DOWN`).
+- **The whole post is quoted once**, exactly as written (capitalisation untouched) — on the first
+  shot, or on the scroll shot when the opening shot shows only the top of a long post.
+- **Date** is when the post was made: in New York time for Trump's Truth Social posts (so a post
+  at 00:00 UTC is dated the day before), and the UTC date for X, which gives no time zone. Change it
+  if the poster's local day differs. **Language** is named for every post, English included.
+- **Archive.** A post more than a calendar month old reads `INTERNET (ARCHIVE - AUGUST 15, 2026) …`; the label follows the date if you edit it.
+- **Highlights** are marked in the quote as `[START HIGHLIGHT]…[END HIGHLIGHT]`.
+- Anything the app can't know is shown as a yellow `[PLACEHOLDER]`, never guessed — and **Copy shotlist** refuses until the title, name, date and language are all filled in, with a pop-up saying what's missing.
 
 ## Output
 
@@ -133,12 +159,14 @@ social-video-maker/
 ├── lib/
 │   ├── sources.js        # fetch a post from X / Truth Social as data
 │   ├── token.js          # sign / verify fetched posts; the text-edit rule
+│   ├── title.js          # suggest a shotlist title from a poster's bio
 │   ├── pipeline.js       # validate request input, build the card
 │   ├── card.js           # draw the post card (HTML → PNG via headless Chrome)
 │   ├── browser.js        # launch Chrome locally, serverless Chromium on Vercel
 │   └── video.js          # card PNG → interlaced .mov (ffmpeg filter graph)
 ├── public/               # the front end — plain HTML/CSS/JS, no build step
 │   ├── index.html  style.css  app.js  help.js
+│   ├── shotlist.js       # builds the shotlist text (pure functions; also used by the tests)
 │   └── fonts/  images/   # Clario font and TR logo
 ├── test/                 # node:test suites
 ├── server.js             # local dev server (serves public/ and api/)
@@ -152,7 +180,7 @@ All endpoints take and return JSON, except `/api/render`, which returns the vide
 
 | Endpoint | Request | Response |
 |---|---|---|
-| `POST /api/post` | `{ url }` | `{ post: { platform, id, name, handle, verified, avatarUrl, text }, token }` |
+| `POST /api/post` | `{ url }` | `{ post: { platform, id, name, handle, verified, avatarUrl, text, postedAt, tz, lang, bio, title }, token }` — the last five feed the shotlist only |
 | `POST /api/preview` | `{ token, text?, highlights? }` | `{ frames: { fit, top }, cardHeight, matchCount, plan }` — frames are 16:9 JPEG data URIs |
 | `POST /api/render` | `{ token, text?, highlights?, format, opening, baseSeconds, zoom, scroll, scrollSeconds }` | `video/quicktime`, with `x-video-seconds` and `x-render-ms` headers |
 
@@ -163,7 +191,10 @@ from 4 to 180, or `auto`.
 ## Known Limitations
 
 - **Truth Social is limited to `@realDonaldTrump`'s recent posts** (see above).
-- **Third-party dependencies.** X's embed endpoint, FxTwitter (long X posts only),
+- **Shotlist titles are only suggestions.** A title is filled in only when an English bio clearly
+  says it ("President of Ukraine", "Anthropic CEO"); otherwise the field is blank. Bios in other
+  languages are not read.
+- **Third-party dependencies.** X's embed endpoint, FxTwitter (long X posts, and the poster's bio),
   trumpstruth.org (Truth Social) and Google Fonts are outside our control. If one fails, the
   app shows a clear error rather than producing a wrong video. See CONTRIBUTING.md §2.6.
 - **No sign-in.** The app has no authentication, and rendering is expensive — add the

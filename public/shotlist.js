@@ -1,0 +1,139 @@
+// Suggested Reuters shotlist for a social-post video. Pure functions with no DOM access, so
+// the page and the tests (test/shotlist.test.js) use the same code.
+//
+// The format follows the RVN social-media screenshot guidance:
+//   INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
+//   (a post more than a month old reads INTERNET (ARCHIVE - AUGUST 15, 2026) …)
+//
+//   1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, ZOOMING IN AND SCROLLING DOWN, READING (English):
+//
+//       "The post, exactly as written…"
+//
+// Highlighted passages are marked in the quote as [START HIGHLIGHT]…[END HIGHLIGHT].
+// Each CUT is a new shot: a hold that zooms and/or scrolls without a cut is one shot; a hold that
+// cuts straight to a scroll is two. The whole post is quoted once.
+
+export const DATELINE_SOURCE = 'SOCIAL MEDIA WEBSITE - Access All';
+const PLATFORM_NAMES = { x: 'X', truth: 'TRUTH SOCIAL' };
+export const HIGHLIGHT_START = '[START HIGHLIGHT]';
+export const HIGHLIGHT_END = '[END HIGHLIGHT]';
+const INLINE_MAX = 280;                       // a single paragraph up to this long is quoted on the shot line
+
+// 'YYYY-MM-DD' for an instant, read in a time zone.
+export function localDate(isoInstant, tz = 'UTC') {
+  const d = new Date(isoInstant);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+}
+
+// Is this date more than a calendar month before today? Such posts are labelled ARCHIVE in the
+// dateline. Exactly one month ago is not yet archive; a day shorter than the target month clamps
+// to its last day (31 March - 1 month = 28 February).
+export function isArchive(ymd, todayYmd) {
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || ''), t = /^(\d{4})-(\d{2})-(\d{2})$/.exec(todayYmd || '');
+  if (!d || !t) return false;
+  const lastDay = new Date(Date.UTC(+t[1], +t[2] - 1, 0)).getUTCDate();          // days in the month before today's
+  const cutoff = new Date(Date.UTC(+t[1], +t[2] - 2, Math.min(+t[3], lastDay)));
+  return Date.UTC(+d[1], +d[2] - 1, +d[3]) < cutoff.getTime();
+}
+
+// 'YYYY-MM-DD' -> 'OCTOBER 25, 2026'
+export function datelineDate(ymd) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || '');
+  if (!m) return '';
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' }).format(d).toUpperCase();
+}
+
+// BCP-47 code from the post -> 'Spanish'. Codes that mean "no language" give '' so the
+// producer is asked, rather than guessed for.
+const NO_LANGUAGE = new Set(['und', 'zxx', 'qme', 'qht', 'qam', 'qst', 'art', '']);
+export function languageName(code) {
+  const c = String(code || '').toLowerCase();
+  if (NO_LANGUAGE.has(c)) return '';
+  try { return new Intl.DisplayNames(['en'], { type: 'language' }).of(c) || ''; } catch { return ''; }
+}
+
+// A display name as it appears in a shotlist: the first name if several are given
+// ("Volodymyr Zelenskyy / Володимир Зеленський"), no emoji, no middle initial, capitals.
+export function shotlistName(name) {
+  return String(name || '')
+    .split(/\s[/|]\s/)[0]
+    .replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}‍️]/gu, '')
+    .replace(/\s+[A-Z]\.(?=\s)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+}
+
+// Capitalisation the shotlist requires, whatever was typed: title and name in capitals, the
+// language named like a proper noun (English, Brazilian Portuguese).
+export const normalizeTitle = s => String(s || '').replace(/\s+/g, ' ').trim().toUpperCase();
+export const normalizeName = normalizeTitle;
+export const normalizeLanguage = s => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase()
+  .replace(/(^|[\s(/-])(\p{L})/gu, (_, before, letter) => before + letter.toUpperCase());
+
+// The shots implied by the video's options. `openingCut` is true when the opening shot shows only
+// the top of a longer post (so the scroll is where the whole post is seen).
+export function shotsFor({ zoom, scroll, openingCut }) {
+  if (zoom && scroll) return [{ motion: 'ZOOMING IN AND SCROLLING DOWN', quote: true }];
+  if (zoom) return [{ motion: 'ZOOMING IN', quote: true }];
+  if (scroll) return [
+    { motion: '', quote: !openingCut },
+    { motion: 'SCROLLING DOWN', samePost: true, quote: !!openingCut },
+  ];
+  return [{ motion: '', quote: true }];
+}
+
+// Put the markers around each range ({start, end} character offsets into `text`).
+export function markHighlights(text, ranges = []) {
+  let out = '', pos = 0;
+  for (const r of [...ranges].sort((a, b) => a.start - b.start)) {
+    const start = Math.max(pos, r.start), end = Math.min(text.length, r.end);
+    if (end <= start) continue;
+    out += `${text.slice(pos, start)}${HIGHLIGHT_START}${text.slice(start, end)}${HIGHLIGHT_END}`;
+    pos = end;
+  }
+  return out + text.slice(pos);
+}
+
+// `shown` is the post with its highlight markers; `plain` is the post without them (for the length test).
+function quoteBlock(shown, plain) {
+  const paragraphs = shown.replace(/\r\n/g, '\n').trim().split('\n').map(l => l.trimEnd());   // trailing spaces are invisible; the words are untouched
+  const inline = paragraphs.length === 1 && plain.length <= INLINE_MAX;
+  if (inline) return { inline: `“${paragraphs[0]}”` };
+  const lines = [...paragraphs];
+  lines[0] = `“${lines[0]}`;
+  lines[lines.length - 1] = `${lines[lines.length - 1]}”`;
+  return { block: lines.map(l => (l ? `    ${l}` : '')).join('\n') };
+}
+
+// fields: { platform, title, name, date ('YYYY-MM-DD'), language, text, highlights: [{start, end}] }
+// options: { zoom, scroll, openingCut, today ('YYYY-MM-DD', defaults to the current date) }
+export function buildShotlist(fields, options = {}) {
+  const platform = PLATFORM_NAMES[fields.platform] || String(fields.platform || '').toUpperCase();
+  const name = normalizeName(fields.name);
+  const title = normalizeTitle(fields.title);
+  const who = `${title || '[TITLE]'}, ${name || '[NAME]'}`;          // always a comma after the title
+  const language = normalizeLanguage(fields.language) || '[LANGUAGE]';
+  const today = options.today || localDate(Date.now(), undefined);   // the reader's own date
+  const date = (isArchive(fields.date, today) ? 'ARCHIVE - ' : '') + (datelineDate(fields.date) || '[DATE]');
+  const raw = String(fields.text || '');
+  const lead = raw.length - raw.trimStart().length;            // highlight offsets count from the untrimmed text
+  const text = raw.trim();
+  const shown = markHighlights(text, (fields.highlights || []).map(r => ({ start: r.start - lead, end: r.end - lead })));
+
+  const out = [`INTERNET (${date}) (${DATELINE_SOURCE}) (MUTE)`];
+  shotsFor(options).forEach((shot, i) => {
+    let line = `${i + 1}. ` + (shot.samePost ? 'SAME POST' : `SCREENSHOT OF ${platform} POST BY ${who}`);
+    if (shot.motion) line += `, ${shot.motion}`;
+    if (shot.quote && text) {
+      line += `, READING (${language}):`;
+      const q = quoteBlock(shown, text);
+      out.push('', q.inline ? `${line} ${q.inline}` : `${line}\n\n${q.block}`);
+    } else {
+      out.push('', line);
+    }
+  });
+  return out.join('\n');
+}

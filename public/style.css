@@ -102,7 +102,7 @@ h2 {
 
 /* ── Form controls ── */
 label { display: block; font-size: 13px; font-weight: 500; color: var(--tr-text); margin: 10px 0 0; }
-input[type=text], select {
+input[type=text], input[type=date], select {
   width: 100%;
   margin-top: 5px;
   padding: 10px 12px;
@@ -149,11 +149,31 @@ input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn-primary { background: var(--tr-orange); color: #fff; box-shadow: 0 4px 12px rgba(214, 64, 0, .3); }
 .btn-primary:hover:not(:disabled) { background: var(--tr-dark-amber); }
-.btn-secondary { background: var(--tr-racing-green); color: #fff; }
-.btn-outline { background: #fff; color: var(--tr-racing-green); border: 2px solid var(--tr-racing-green); }
-.btn-outline:hover:not(:disabled) { background: var(--tr-racing-green); color: #fff; }
+/* Secondary and outline buttons use the archive dashboard's scheme: grey border and dark text,
+   with an orange border and a pale orange fill on hover. */
+.btn-secondary, .btn-outline { background: #fff; color: var(--tr-text); border: 2px solid var(--tr-border); }
+.btn-secondary:hover:not(:disabled), .btn-outline:hover:not(:disabled) { border-color: var(--tr-orange); background: #fff5f0; transform: translateY(-2px); }
 .btn-sm { margin-top: 14px; padding: 8px 18px; font-size: 13px; border-radius: 6px; }
 .btn-large { margin-top: 18px; padding: 16px 36px; font-size: 17px; width: 100%; justify-content: center; }
+.check.disabled { color: #9aa0a6; cursor: not-allowed; position: relative; }   /* greyed by colour, not opacity, so the tooltip stays solid */
+.check[data-tip]:hover::after {                       /* hover explanation on an unavailable choice */
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 6px;
+  width: 260px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f1f3f5;
+  color: var(--tr-text);
+  border: 1px solid var(--tr-border);
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .15);
+  z-index: 20;
+  pointer-events: none;
+}
 .spin {
   display: inline-block;
   width: 14px;
@@ -196,14 +216,15 @@ input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); }
   font-size: 13px;
   font-weight: 500;
   padding: 5px 12px;
-  border: none;
+  border: 2px solid var(--tr-border);
   border-radius: 6px;
-  background: var(--tr-racing-green);
-  color: #fff;
+  background: #fff;
+  color: var(--tr-text);
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, .25);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .18);
+  transition: var(--transition);
 }
-.hl-pop button:hover { background: #0a1b0d; }
+.hl-pop button:hover { border-color: var(--tr-orange); background: #fff5f0; }
 
 /* ── Step 3: options ── */
 .bar { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; margin-bottom: 14px; }
@@ -236,6 +257,31 @@ fieldset.off { opacity: .55; }
 .stage img, .stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fff; }
 .stage .empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; color: #9aa0a6; font-size: 14px; }
 #result { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+
+/* ── Step 5: suggested shotlist (full width; hidden until a post is fetched) ── */
+.panel-wide { grid-column: 1 / -1; }
+.warn-text { color: #c0392b; font-size: 13px; font-weight: 500; }
+.quad { display: grid; grid-template-columns: 2fr 2fr 1.2fr 1.2fr; gap: 12px; }
+@media (max-width: 900px) { .quad { grid-template-columns: 1fr 1fr; } }
+.shotlist {
+  margin: 14px 0 0;
+  padding: 14px 16px;
+  background: var(--tr-bg);
+  border: 1px solid var(--tr-border);
+  border-radius: 8px;
+  font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 360px;
+  overflow: auto;
+}
+input.invalid { border-color: #c0392b; box-shadow: 0 0 0 3px rgba(192, 57, 43, .15); }
+.notice { border: none; border-radius: var(--radius); padding: 24px 28px 20px; max-width: 360px; box-shadow: 0 8px 32px rgba(0, 0, 0, .25); font-family: inherit; text-align: center; }
+.notice::backdrop { background: rgba(18, 48, 21, .45); }
+.notice p { margin: 0 0 6px; font-size: 15px; color: var(--tr-text); }
+.notice .btn { margin-top: 12px; padding: 8px 28px; }
+.shotlist .gap { background: var(--tr-light-gold); border-radius: 2px; }
+.shotlist .hlm { color: var(--tr-racing-green); font-weight: 700; }
 
 /* ── Help drawer ── */
 .btn-help { margin-top: 0; padding: 7px 16px; gap: 5px; }

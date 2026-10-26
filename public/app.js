@@ -1,6 +1,8 @@
 // Social Video Maker — front end. No framework, no build step.
 // Flow: fetch a post (signed by the server) → check/fix its text and highlight passages →
 // choose options → preview the first frame → render the video into the same stage.
+import { buildShotlist, localDate, languageName, shotlistName, normalizeTitle, normalizeName, normalizeLanguage } from './shotlist.js';
+
 const $ = id => document.getElementById(id);
 const checked = name => document.querySelector(`input[name=${name}]:checked`).value;
 
@@ -138,6 +140,7 @@ function setHighlight(start, end, on) {
   selectOffsets(start, end);
   $('previewInfo').textContent = 'Highlights changed — click Update preview to check them.';
   updatePop();
+  updateShotlist();
 }
 
 function updatePop() {                               // the floating Highlight / Remove highlight button
@@ -161,6 +164,7 @@ const hasText = () => !!state.post && readBox().text.trim().length > 0;    // on
 function refreshButtons() {
   $('previewBtn').disabled = state.busy || !hasText();
   checkZoomLimit();
+  updateShotlist();
 }
 
 // Step 2 is always visible, but greyed out until there is a fetched post to check.
@@ -187,6 +191,7 @@ $('fetchBtn').onclick = async () => {
     $('name').value = post.name || '';
     $('handle').value = post.handle || '';
     renderBox(post.text || '', []);
+    fillShotlistFields(post);
     say($('fetchMsg'), `Got ${post.name} (@${post.handle}).`);
     state.busy = false;
     refreshButtons();
@@ -200,6 +205,88 @@ $('fetchBtn').onclick = async () => {
   }
 };
 $('url').addEventListener('keydown', e => { if (e.key === 'Enter') $('fetchBtn').click(); });
+
+// ── Step 5: suggested shotlist ───────────────────────────────────────────────────
+// Built in the page from the post, the video options and four fields the producer can correct.
+// Everything the app can't know is left as a visible [PLACEHOLDER] rather than guessed.
+const slFields = ['slTitle', 'slName', 'slDate', 'slLang'];
+
+function fillShotlistFields(post) {
+  $('slTitle').value = post.title || '';
+  $('slName').value = shotlistName(post.name);
+  $('slDate').value = post.postedAt ? localDate(post.postedAt, post.tz) : '';
+  $('slLang').value = languageName(post.lang);
+  const tzNote = post.tz === 'UTC'
+    ? 'X gives the time in UTC, so the date is the UTC date — change it if the poster’s local date differs.'
+    : 'The date is read in the poster’s time zone.';
+  const bioQuote = post.bio ? `“${post.bio.length > 160 ? post.bio.slice(0, 157) + '…' : post.bio}”` : '';
+  $('slHint').textContent = (post.bio
+    ? (post.title ? `Title suggested from the poster’s bio: ${bioQuote}` : 'No title could be determined from bio; please enter one manually.')
+    : post.title ? 'Title suggested for this account — check it.' : 'No bio was available — type the title.')
+    + ' ' + tzNote;
+  $('shotlistPanel').hidden = false;      // step 5 only appears once there is a post
+}
+
+function shotlistText() {
+  const openingCut = checked('opening') === 'top' && !!state.plan && state.cardHeight > state.plan.overviewRows;
+  return buildShotlist({
+    platform: state.post.platform,
+    title: $('slTitle').value, name: $('slName').value, date: $('slDate').value, language: $('slLang').value,
+    text: readBox().text, highlights: readBox().ranges,
+  }, { zoom: $('zoom').checked, scroll: $('scroll').checked, openingCut });
+}
+
+function updateShotlist() {
+  if (!state.post) return;
+  const out = $('shotlistOut');
+  out.textContent = '';
+  // Placeholders like [LANGUAGE] are marked so they are hard to miss; so are the highlight tags.
+  for (const part of shotlistText().split(/(\[(?:DATE|TITLE|NAME|LANGUAGE)\]|\[(?:START|END) HIGHLIGHT\])/)) {
+    if (/^\[(?:DATE|TITLE|NAME|LANGUAGE)\]$/.test(part) || /^\[(?:START|END) HIGHLIGHT\]$/.test(part)) {
+      const mark = document.createElement('span');
+      mark.className = part.includes('HIGHLIGHT') ? 'hlm' : 'gap';
+      mark.textContent = part;
+      out.append(mark);
+    } else out.append(part);
+  }
+}
+
+slFields.forEach(id => $(id).addEventListener('input', () => { $(id).classList.remove('invalid'); updateShotlist(); }));
+// The shotlist always uses the required capitalisation; once you leave a box it shows it too.
+const NORMALIZERS = { slTitle: normalizeTitle, slName: normalizeName, slLang: normalizeLanguage };
+Object.entries(NORMALIZERS).forEach(([id, fix]) => $(id).addEventListener('change', () => { $(id).value = fix($(id).value); updateShotlist(); }));
+
+// Copying needs the title, name, date and language: the shotlist must never leave with a gap in it.
+const SL_REQUIRED = [['slTitle', 'title'], ['slName', 'name'], ['slDate', 'date'], ['slLang', 'language']];
+
+function showNotice(message, focusId) {
+  $('slDialogMsg').textContent = message;
+  $('slDialog').showModal();
+  $('slDialog').addEventListener('close', () => $(focusId)?.focus(), { once: true });
+}
+$('slDialogOk').onclick = () => $('slDialog').close();
+
+$('copyShotlist').onclick = async () => {
+  const missing = SL_REQUIRED.filter(([id]) => !$(id).value.trim());
+  if (missing.length) {
+    missing.forEach(([id]) => $(id).classList.add('invalid'));
+    const names = missing.map(([, label]) => label);
+    showNotice(names.length === 1 ? `Please add a ${names[0]}.` : `Please add: ${names.join(', ')}.`, missing[0][0]);
+    return;
+  }
+  const text = shotlistText();
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {                                           // no clipboard permission: fall back to selecting the text
+    const r = document.createRange();
+    r.selectNodeContents($('shotlistOut'));
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+    document.execCommand('copy');
+  }
+  $('copyShotlist').textContent = 'Copied ✓';
+  setTimeout(() => { $('copyShotlist').textContent = 'Copy shotlist'; }, 1500);
+};
 
 // ── Step 3: options ──────────────────────────────────────────────────────────────
 function applyPlan(plan, cardHeight) {
@@ -225,12 +312,22 @@ function applyPlan(plan, cardHeight) {
   refreshButtons();
 }
 
-// Zoom can start from the whole post only up to a height limit; say so as soon as it applies.
+// Zoom can start from the whole post only up to a height limit. While Zoom is on and the post is
+// too tall, "Whole post" is greyed out (hover says why) and "Top of the post" takes over.
+const ZOOM_LIMIT_TIP = 'Zoom can only start from the whole post when it is under about 4 screens tall. Pick “Top of the post” as the opening shot, or turn Zoom off.';
 function checkZoomLimit() {
   const p = state.plan;
-  const blocked = !!p && state.cardHeight > p.zoomFitMaxRows && checked('opening') === 'fit' && $('zoom').checked;
-  $('zoomWarn').hidden = !blocked;
-  $('makeBtn').disabled = state.busy || !hasText() || blocked;
+  const limited = !!p && state.cardHeight > p.zoomFitMaxRows && $('zoom').checked;
+  const fit = $('openingFit');
+  fit.querySelector('input').disabled = limited;
+  fit.classList.toggle('disabled', limited);
+  if (limited) fit.dataset.tip = ZOOM_LIMIT_TIP; else delete fit.dataset.tip;
+  if (limited && checked('opening') === 'fit') {
+    document.querySelector('input[name=opening][value=top]').checked = true;
+    showFrame();
+    updateShotlist();
+  }
+  $('makeBtn').disabled = state.busy || !hasText();
 }
 
 function updateScrollHint() {
@@ -243,10 +340,11 @@ function updateScrollHint() {
 }
 
 $('scrollSeconds').onchange = updateScrollHint;
-$('zoom').onchange = checkZoomLimit;
-$('scroll').onchange = () => { $('scrollLenRow').hidden = !$('scroll').checked; };
+$('zoom').onchange = () => { checkZoomLimit(); updateShotlist(); };
+$('scroll').onchange = () => { $('scrollLenRow').hidden = !$('scroll').checked; updateShotlist(); };
 document.querySelectorAll('input[name=opening]').forEach(r => r.addEventListener('change', () => {
   checkZoomLimit();
+  updateShotlist();
   if (!$('stageImg').hidden) showFrame();
 }));
 

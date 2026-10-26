@@ -102,7 +102,7 @@ tests in `test/text.test.js` passing — an off-by-a-few highlight is silent.
 | Dependency | Used for | If it fails |
 |---|---|---|
 | `cdn.syndication.twimg.com` | X post text and author details | clear error ("X returned HTTP …") |
-| `api.fxtwitter.com` (FxTwitter, open source, third party) | full text of long X posts only | refuses the post (§2.2) |
+| `api.fxtwitter.com` (FxTwitter, open source, third party) | full text of long X posts; the poster's bio for the shotlist title | long post: refuses (§2.2). Bio: shotlist title is left blank |
 | `trumpstruth.org/feed` | @realDonaldTrump's Truth Social posts | clear error; only his ~100 latest posts exist |
 | Google Fonts | Inter + Noto fonts on the card | card falls back to system fonts (non-Latin scripts may look wrong) |
 
@@ -118,17 +118,35 @@ from; verified badge, name, handle and picture always from the post; no timestam
 buttons. These were deliberate editorial/design decisions — don't make them options without
 asking.
 
-### 2.8 Interlacing is part of the format
+### 2.8 The shotlist follows the desk's format — and never guesses
+`public/shotlist.js` writes the shotlist from the RVN social-media guidance and the desk's worked
+example (`test/shotlist.test.js` reproduces it line for line). The rules that matter:
+- **A shot is a cut.** Zoom, or zoom then scroll, is one shot; scroll after a straight cut is two.
+- **Quote the whole post once, untouched** — no case changes, no trimming (only line-end spaces) —
+  with `[START HIGHLIGHT]` / `[END HIGHLIGHT]` around highlighted passages. Highlight offsets count
+  from the untrimmed text the page sends, exactly as `cleanRanges()` does (§2.5).
+- **Missing information is a visible `[PLACEHOLDER]`.** Never fill a title, date or language by
+  guessing. `lib/title.js` answers only when a bio plainly says "<role> of <country>" or
+  "<organisation> CEO"; otherwise it returns `null`. Keep it conservative: a wrong title in a
+  shotlist is an editorial error.
+- **Archive:** a date more than a calendar month before today is labelled `ARCHIVE - ` in the
+  dateline (`isArchive()`; exactly one month ago is not yet archive). It's judged against the reader's
+  current date, so tests pass `today` explicitly.
+- **Date is the post's local date** (Truth Social/Trump: New York time; X: UTC, editable).
+The shotlist is built in the page — the server only supplies `postedAt`, `tz`, `lang`, `bio` and
+`title`, none of which are signed or used in the video.
+
+### 2.9 Interlacing is part of the format
 60i is **30 fps** and 50i is **25 fps** (frames are rendered at 60/50 fps and interlaced by
 `tinterlace`, top field first). Don't "fix" the frame rate to 29.97 or 59.94 without asking the
 desks what their ingest expects.
 
-### 2.9 Never commit secrets or machine-specific files
+### 2.10 Never commit secrets or machine-specific files
 `.env`, `.signing-secret` and `.corp-ca.pem` are gitignored — keep it that way, and check
 `git status` after a broad `git add`. The Clario fonts and TR logo in `public/` are Thomson
 Reuters assets: fine in this repo, not for copying elsewhere.
 
-### 2.10 Interactive elements don't inherit the site font
+### 2.11 Interactive elements don't inherit the site font
 Clario is set on `body`; buttons, inputs and selects fall back to the system font unless they
 set `font: inherit` / `font-family: inherit`. Check any new control (and `.hl-pop button`,
 which is easy to miss because it's created by script).
@@ -183,7 +201,7 @@ long one and one with links/mentions/hashtags.
 
 ### 3.4 Before you push
 - `npm test` is green and you've rendered at least one real video from the changed path.
-- `git status` shows nothing from §2.9.
+- `git status` shows nothing from §2.10.
 - Help (`public/help.js`) and `README.md` match the behaviour — not the old behaviour.
 
 ---
@@ -225,7 +243,7 @@ things wrong unless you tell it. Paste the relevant bits in:
 - Check the last line of a long post and the position of any highlight.
 - If it touched `lib/sources.js`, ask what happens when each upstream is down.
 - If it added an option, check all six places in §3.2.
-- Check `git diff` for anything outside the task, and `git status` for the files in §2.9.
+- Check `git diff` for anything outside the task, and `git status` for the files in §2.10.
 
 **Good prompt shape for a change:** describe the *editorial* problem ("long X posts stop after
 four lines"), point at the relevant file from the quick reference below, and say what a correct
@@ -243,6 +261,8 @@ result looks like in the video — then review against §2 before you run it.
 | Drawing the card (fonts, themes, badges, slicing) | `lib/card.js` |
 | Launching Chrome (local vs Vercel) | `lib/browser.js` |
 | The video — timeline, zoom, scroll, interlacing, `CONFIG` | `lib/video.js` |
+| The shotlist text | `public/shotlist.js` |
+| Suggesting a shotlist title from a bio | `lib/title.js` |
 | API handlers | `api/post.js`, `api/preview.js`, `api/render.js` |
 | Local server | `server.js` |
 | Page, styling, behaviour | `public/index.html`, `style.css`, `app.js` |

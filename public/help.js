@@ -25,6 +25,11 @@ const HELP = [
     { t: 'The preview box', b: ['Before you create a video it shows the first frame. After you click <strong>Create video</strong> it plays the finished video in the same place — long scrolls can take a minute or two to render, so keep the tab open.'] },
     { t: 'Download', b: ['<strong>Download .mov</strong> saves the video (H.264 in a QuickTime file). Clicking <strong>Update preview</strong> afterwards swaps the video back out for the still, so download first.'] },
   ]},
+  { title: 'Shotlist', entries: [
+    { t: 'Suggested shotlist', b: ['Step 5 writes a Reuters shotlist for the video you’re making — dateline, shot description and the whole post in quotes, exactly as the poster wrote it. It follows your choices: a zoom or a zoom-and-scroll is one shot; scrolling after a straight cut is two shots, with the post quoted once. Highlighted passages are marked <strong>[START HIGHLIGHT]</strong> … <strong>[END HIGHLIGHT]</strong> in the quote. Click <strong>Copy shotlist</strong> to paste it into your edit.'] },
+    { t: 'Title, name, date, language', b: ['Fill in from the post. The <strong>title</strong> is read from the poster’s bio when the bio says it clearly (“President of Ukraine”, “Anthropic CEO”); the bio is shown under the fields so you can check it, and you can change the title. If nothing can be read, type it.',
+      'The <strong>date</strong> is when the post was made, in the poster’s time zone for Truth Social. X only gives UTC, so change the date if the poster’s local day is different. The <strong>language</strong> comes from X; correct it if it’s wrong. The shotlist forces the capitalisation it needs whatever you type: title and name in capitals, language like “English”. A post more than a month old gets <strong>ARCHIVE -</strong> in the dateline, and the label follows the date if you change it. Anything missing shows as a yellow [PLACEHOLDER] in the shotlist, and <strong>Copy shotlist</strong> won’t copy until the title, name, date and language are all filled in.'] },
+  ]},
   { title: 'Keys', entries: [
     { t: 'Keyboard', b: ['<kbd>Enter</kbd> in the link box fetches the post. <kbd>Esc</kbd> closes this panel.'] },
   ]},

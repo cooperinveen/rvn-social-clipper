@@ -17,7 +17,8 @@ beforeEach(() => {
 afterEach(() => { globalThis.fetch = realFetch; });
 
 const user = { name: 'Ada', screen_name: 'ada', is_blue_verified: true, profile_image_url_https: 'https://pbs.twimg.com/profile_images/1/a_normal.jpg' };
-const tweet = (extra = {}) => ({ __typename: 'Tweet', text: 'Hello world. Second line.', display_text_range: [0, 25], entities: {}, user, ...extra });
+const tweet = (extra = {}) => ({ __typename: 'Tweet', text: 'Hello world. Second line.', display_text_range: [0, 25], entities: {}, user,
+  created_at: '2026-06-15T18:39:09.000Z', lang: 'en', ...extra });
 
 test('detectPlatform', () => {
   assert.equal(detectPlatform('https://x.com/a/status/1'), 'x');
@@ -28,11 +29,20 @@ test('detectPlatform', () => {
   assert.equal(detectPlatform('not a url'), null);
 });
 
-test('X: a normal post is read from the syndication endpoint alone', async () => {
-  routes.push(['syndication', 200, tweet()]);
+test('X: a normal post is read from the syndication endpoint; the bio is a bonus', async () => {
+  routes.push(['syndication', 200, tweet()], ['fxtwitter', 200, { user: { description: 'Prime Minister of India' } }]);
   const p = await fetchPost('https://x.com/ada/status/123');
   assert.deepEqual(p, { platform: 'x', id: '123', name: 'Ada', handle: 'ada', verified: true,
-    avatarUrl: 'https://pbs.twimg.com/profile_images/1/a_400x400.jpg', text: 'Hello world. Second line.' });
+    avatarUrl: 'https://pbs.twimg.com/profile_images/1/a_400x400.jpg', text: 'Hello world. Second line.',
+    postedAt: '2026-06-15T18:39:09.000Z', tz: 'UTC', lang: 'en', bio: 'Prime Minister of India', title: 'INDIAN PRIME MINISTER' });
+});
+
+test('X: if the bio lookup fails the post still loads, with no title', async () => {
+  routes.push(['syndication', 200, tweet()]);                      // no fxtwitter route: the bio request throws
+  const p = await fetchPost('https://x.com/ada/status/123');
+  assert.equal(p.bio, null);
+  assert.equal(p.title, null);
+  assert.equal(p.text, 'Hello world. Second line.');
 });
 
 test('X: t.co links are replaced by their display text, and trailing media links dropped', async () => {
@@ -69,7 +79,7 @@ test('X: missing, deleted and text-less posts give clear errors', async () => {
 
 const feed = items => `<rss><channel>${items.map(i => `<item>
   <description><![CDATA[${i.html}]]></description><dc:creator>Donald J. Trump</dc:creator>
-  <truth:originalId>${i.id}</truth:originalId><archive:removed>${i.removed ? 'true' : 'false'}</archive:removed></item>`).join('')}</channel></rss>`;
+  <pubDate>Mon, 26 Oct 2026 00:00:09 +0000</pubDate><truth:originalId>${i.id}</truth:originalId><archive:removed>${i.removed ? 'true' : 'false'}</archive:removed></item>`).join('')}</channel></rss>`;
 
 test('Truth Social: @realDonaldTrump posts come from the archive feed', async () => {
   routes.push(['trumpstruth.org/feed', 200, feed([{ id: '111', html: '<p>First</p>' }, { id: '222', html: '<p>Second &amp; last</p>' }])]);
@@ -79,6 +89,10 @@ test('Truth Social: @realDonaldTrump posts come from the archive feed', async ()
   assert.equal(p.verified, true);
   assert.equal(p.text, 'Second & last');
   assert.match(p.avatarUrl, /^https:\/\/static-assets-\d+\.truthsocial\.com\//);
+  assert.equal(p.title, 'US PRESIDENT');
+  assert.equal(p.lang, 'en');
+  assert.equal(p.tz, 'America/New_York');
+  assert.match(p.postedAt, /^\d{4}-\d{2}-\d{2}T/);
 });
 
 test('Truth Social: other accounts, old posts and removed posts are refused', async () => {

@@ -56,10 +56,9 @@
     </div>
     <div class="opts">
       <fieldset id="openingSet"><legend>Opening shot</legend>
-        <label class="check"><input type="radio" name="opening" value="fit" checked> Whole post, shrunk to fit</label>
+        <label class="check" id="openingFit"><input type="radio" name="opening" value="fit" checked> Whole post, shrunk to fit</label>
         <label class="check"><input type="radio" name="opening" value="top"> Top of the post, fading out</label>
         <p class="hint" id="openingHint"></p>
-        <div class="msg warn" id="zoomWarn" hidden>Zoom can only start from the whole post when it is under about 4 screens tall. Pick “Top of the post” as the opening shot, or turn Zoom off.</div>
       </fieldset>
       <fieldset id="motion"><legend>Movement <span class="light" id="motionNote">(long posts only)</span></legend>
         <label class="check"><input type="checkbox" id="zoom"> Zoom in <span class="light">+10s</span></label>
@@ -85,7 +84,26 @@
       <span class="light" id="resultInfo"></span>
     </div>
   </section>
+
+  <section class="panel panel-wide" id="shotlistPanel" hidden>
+    <h2><span class="step">5</span> Suggested shotlist <span class="warn-text">— may contain errors - check it before you copy</span></h2>
+    <div id="shotlistBody">
+      <div class="quad">
+        <label>Title<input type="text" id="slTitle" autocomplete="off" placeholder="e.g. US PRESIDENT"></label>
+        <label>Name<input type="text" id="slName" autocomplete="off"></label>
+        <label>Date<input type="date" id="slDate"></label>
+        <label>Language<input type="text" id="slLang" autocomplete="off" placeholder="e.g. English"></label>
+      </div>
+      <p class="hint" id="slHint"></p>
+      <pre class="shotlist" id="shotlistOut"></pre>
+      <button class="btn btn-secondary btn-sm" id="copyShotlist" type="button">Copy shotlist</button>
+    </div>
+  </section>
 </main>
+<dialog class="notice" id="slDialog" aria-labelledby="slDialogMsg">
+  <p id="slDialogMsg"></p>
+  <button class="btn btn-primary btn-sm" id="slDialogOk" type="button">OK</button>
+</dialog>
 <div class="help-backdrop" id="help-drawer" hidden>
   <aside class="help-drawer" role="dialog" aria-modal="true" aria-labelledby="help-title">
     <div class="help-head">
