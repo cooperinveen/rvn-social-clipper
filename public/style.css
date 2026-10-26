@@ -84,7 +84,7 @@ h2 {
   align-items: center;
   gap: 10px;
 }
-.panel > h2:first-child { margin-top: 0; }
+.panel > h2:first-child, #builder > h2:first-child { margin-top: 0; }
 .step {
   background: var(--tr-orange);
   color: #fff;
@@ -189,7 +189,9 @@ input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); }
 /* The panels are equal height; the post-text box takes whatever height is left and
    scrolls inside itself, so a long post never stretches the page. */
 #editor { flex: 1 1 0px; min-height: 0; display: flex; flex-direction: column; }
-#editor.off { opacity: .5; }
+#editor.off, #builder.off { opacity: .5; }
+#builder.off { pointer-events: none; }
+#builder.off .seg input:checked + span { border-color: var(--tr-border); background: #fff; color: var(--tr-text); }   /* no pre-picked look until there is a post */
 #editor .btn-sm { align-self: flex-start; }
 .field { flex: 1 1 0px; min-height: 200px; display: flex; flex-direction: column; position: relative; margin-top: 10px; }
 .lbl { display: block; font-size: 13px; font-weight: 500; }

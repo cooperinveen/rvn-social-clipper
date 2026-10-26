@@ -172,6 +172,7 @@ function refreshButtons() {
 // Step 2 is always visible, but greyed out until there is a fetched post to check.
 function setEditor(on) {
   $('editor').classList.toggle('off', !on);
+  $('builder').classList.toggle('off', !on);      // steps 3 and 4 wait for a post too
   $('previewBtn').disabled = !on;
   box.contentEditable = on ? (box.dataset.mode || 'plaintext-only') : 'false';
   if (!on) $('hlPop').hidden = true;
