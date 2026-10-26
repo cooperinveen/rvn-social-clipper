@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Video Maker</title>
+  <meta name="description" content="Turn an X or Truth Social post into a broadcast-ready 1080i video.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2715%27 fill=%27%23D64000%27/%3E%3Cpath d=%27M12 9.5v13l11-6.5z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="tr-header">
+  <div class="brand"><img src="images/tr_pri_logo_rgb_color.png" alt="Thomson Reuters" class="tr-logo"><span class="tr-header-title">Social Video Maker</span></div>
+  <div class="header-right">
+    <span class="tagline">Turn a social post into a broadcast-ready clip</span>
+    <button class="btn btn-outline btn-sm btn-help" id="btn-help" type="button" aria-haspopup="dialog" title="How everything works">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M6.3 6.2a1.8 1.8 0 0 1 3.5.6c0 1.2-1.8 1.6-1.8 2.7"/><path d="M8 11.6v.1"/></svg>
+      Help
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="panel">
+    <h2><span class="step">1</span> Get the post</h2>
+    <div class="row">
+      <input type="text" id="url" placeholder="Paste an X or Truth Social link" autocomplete="off" spellcheck="false">
+      <button class="btn btn-primary" id="fetchBtn" type="button">Fetch post</button>
+    </div>
+    <div class="msg" id="fetchMsg" hidden></div>
+
+    <div id="editor" class="off">
+      <h2><span class="step">2</span> Check the text <span class="light">— fix anything the app got wrong</span></h2>
+      <div class="pair">
+        <label>Name<input type="text" id="name" readonly></label>
+        <label>Handle<input type="text" id="handle" readonly></label>
+      </div>
+      <div class="field">
+        <span class="lbl">Post text</span>
+        <div id="text" class="rich" contenteditable="plaintext-only" spellcheck="false" role="textbox" aria-multiline="true" data-placeholder="The post text appears here once you fetch a post."></div>
+        <div class="hl-pop" id="hlPop" hidden><button type="button" id="hlBtn">Highlight</button></div>
+      </div>
+      <button class="btn btn-outline btn-sm" id="previewBtn" type="button" disabled>Update preview</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2><span class="step">3</span> Make the video</h2>
+    <div class="bar">
+      <div class="seg-group"><span class="seg-label">Format</span>
+        <div class="seg"><label><input type="radio" name="format" value="60i" checked><span>60i</span></label><label><input type="radio" name="format" value="50i"><span>50i</span></label></div>
+      </div>
+      <div class="seg-group"><span class="seg-label">Opening hold</span>
+        <div class="seg"><label><input type="radio" name="base" value="10" checked><span>10s</span></label><label><input type="radio" name="base" value="20"><span>20s</span></label><label><input type="radio" name="base" value="30"><span>30s</span></label></div>
+      </div>
+    </div>
+    <div class="opts">
+      <fieldset id="openingSet"><legend>Opening shot</legend>
+        <label class="check"><input type="radio" name="opening" value="fit" checked> Whole post, shrunk to fit</label>
+        <label class="check"><input type="radio" name="opening" value="top"> Top of the post, fading out</label>
+        <p class="hint" id="openingHint"></p>
+        <div class="msg warn" id="zoomWarn" hidden>Zoom can only start from the whole post when it is under about 4 screens tall. Pick “Top of the post” as the opening shot, or turn Zoom off.</div>
+      </fieldset>
+      <fieldset id="motion"><legend>Movement <span class="light" id="motionNote">(long posts only)</span></legend>
+        <label class="check"><input type="checkbox" id="zoom"> Zoom in <span class="light">+10s</span></label>
+        <label class="check"><input type="checkbox" id="scroll"> Scroll to the end</label>
+        <label class="inline small" id="scrollLenRow" hidden>Scroll takes
+          <select id="scrollSeconds"></select>
+        </label>
+        <p class="hint" id="scrollHint"></p>
+      </fieldset>
+    </div>
+    <button class="btn btn-primary btn-large" id="makeBtn" type="button" disabled>Create video</button>
+    <div class="msg" id="makeMsg" hidden></div>
+
+    <h2><span class="step">4</span> Preview</h2>
+    <div class="stage" id="stage">
+      <div class="empty" id="stageEmpty">Fetch a post to see it here.</div>
+      <img id="stageImg" alt="Opening frame preview" hidden>
+      <video id="player" controls muted hidden></video>
+    </div>
+    <p class="hint" id="previewInfo"></p>
+    <div id="result" hidden>
+      <a class="btn btn-secondary" id="download">Download .mov</a>
+      <span class="light" id="resultInfo"></span>
+    </div>
+  </section>
+</main>
+<div class="help-backdrop" id="help-drawer" hidden>
+  <aside class="help-drawer" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="help-head">
+      <div><h2 class="help-title" id="help-title">Help</h2><p class="help-sub">What everything does, and what the options mean</p></div>
+      <button class="help-close" id="help-close" type="button" aria-label="Close help">✕</button>
+    </div>
+    <div class="help-search"><input type="text" id="help-search" placeholder="Search help — e.g. highlight, scroll, 60i…" autocomplete="off"></div>
+    <div class="help-body" id="help-body"></div>
+  </aside>
+</div>
+<script type="module" src="help.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
