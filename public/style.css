@@ -101,7 +101,7 @@ h2 {
 .hint { font-size: 13px; color: var(--tr-text-light); margin: 8px 0 0; }
 
 /* ── Form controls ── */
-label { display: block; font-size: 13px; font-weight: 500; color: var(--tr-text); margin: 10px 0 0; }
+label, .ro { display: block; font-size: 13px; font-weight: 500; color: var(--tr-text); margin: 10px 0 0; }
 input[type=text], input[type=date], select {
   width: 100%;
   margin-top: 5px;
@@ -117,7 +117,7 @@ input:focus, select:focus, .rich:focus {
   border-color: var(--tr-orange);
   box-shadow: 0 0 0 3px rgba(214, 64, 0, .15);
 }
-input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); }
+input[readonly] { background: var(--tr-bg); color: var(--tr-text-light); pointer-events: none; user-select: none; caret-color: transparent; cursor: default; }
 .row { display: flex; gap: 10px; }
 .row input { margin-top: 0; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

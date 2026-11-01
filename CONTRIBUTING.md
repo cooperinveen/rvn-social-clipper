@@ -26,7 +26,7 @@ clear message** rather than quietly produce something degraded.
   (`lib/token.js`). `/api/preview` and `/api/render` accept *only* that token plus the
   producer's edited text and highlight ranges — never a name, handle, avatar or badge. The
   signature locks the author details and the original text; the only thing a producer may change
-  is the text, and only to correct or trim it (§2.1).
+  is the text, and only to cut it short from the end (§2.1).
 
 - **One ffmpeg filter graph makes the whole video** (`lib/video.js`): opening hold, highlight
   cross-fade, zoom, sub-pixel scroll, colour conversion and interlacing. There is no
@@ -57,10 +57,10 @@ clear message** rather than quietly produce something degraded.
 an endpoint or field that takes name, handle, avatar, badge or free text from the client, and
 don't loosen the checks:
 - The token's signed fields are authoritative; client-supplied ones are ignored.
-- Edited text must keep at least `MIN_ORIGINAL_SHARE` (70%) of its words from the original
-  (`textEditAllowed()` in `lib/token.js`). That allows corrections and trims and blocks writing
-  something new. It does not — and can't — stop someone trimming hard and adding a few words;
-  that's an editorial-trust question, not a technical one.
+- Edited text must be the opening of the original, word for word (`textEditAllowed()` in
+  `lib/token.js`): the only edit is cutting from the end. Adding, changing, reordering and cutting
+  from the middle or start are all refused. It can't stop someone trimming hard and then
+  adding words to a different post; that's an editorial-trust question, not a technical one.
 - `SIGNING_SECRET` must be set on any shared deployment. Without it, `/api/post` errors
   rather than falling back to something guessable.
 - Avatars are fetched server-side, so only hosts in `AVATAR_HOSTS` (`lib/pipeline.js`) are

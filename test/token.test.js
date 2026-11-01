@@ -32,18 +32,20 @@ test('a token older than a day is rejected', () => {
   } finally { Date.now = realNow; }
 });
 
-test('text edits: corrections and trims are allowed', () => {
+test('text edits: the post itself, or its opening, is allowed', () => {
   assert.equal(textEditAllowed(post.text, post.text), true);
-  assert.equal(textEditAllowed(post.text, 'The quick brown fox jumps over the lazy cat.'), true);   // one word changed
-  assert.equal(textEditAllowed(post.text, 'The quick brown fox'), true);                            // trimmed
+  assert.equal(textEditAllowed(post.text, 'The quick brown fox'), true);        // cut from the end
+  assert.equal(textEditAllowed(post.text, 'The quick brown fo'), true);         // even mid-word
+  assert.equal(textEditAllowed(post.text, '  The quick brown fox\n'), true);    // surrounding whitespace is ignored
 });
 
-test('text edits: rewrites and empty text are refused', () => {
-  assert.equal(textEditAllowed(post.text, 'Breaking news about something that never happened at all today.'), false);
+test('text edits: adding, changing, reordering and cutting from the middle or start are refused', () => {
+  assert.equal(textEditAllowed(post.text, 'The quick brown fox jumps over the lazy cat.'), false);   // one word changed
+  assert.equal(textEditAllowed(post.text, 'The quick brown fox jumps over the lazy dog. Really.'), false);   // added
+  assert.equal(textEditAllowed(post.text, 'The brown quick fox'), false);                              // reordered
+  assert.equal(textEditAllowed(post.text, 'The fox jumps over the lazy dog.'), false);                 // cut from the middle
+  assert.equal(textEditAllowed(post.text, 'fox jumps over the lazy dog.'), false);                     // cut from the start
+  assert.equal(textEditAllowed(post.text, 'the quick brown fox'), false);                              // capitalisation changed
   assert.equal(textEditAllowed(post.text, ''), false);
-  assert.equal(textEditAllowed(post.text, '   ...   '), false);
-});
-
-test('text edits: repeating a word does not get past the check', () => {
-  assert.equal(textEditAllowed('one two three', 'one one one one one one one one'), false);
+  assert.equal(textEditAllowed(post.text, '   '), false);
 });

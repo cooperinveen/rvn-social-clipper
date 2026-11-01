@@ -5,7 +5,7 @@ const HELP = [
   { title: 'Getting a post', entries: [
     { t: 'Fetch post', b: ['Paste a link to an X post or a Truth Social post and click <strong>Fetch post</strong> (or press <kbd>Enter</kbd>). Everything in the video comes from that post: the name, handle, profile picture and verified badge are taken from it and can’t be changed.',
       'X works for any public post. Truth Social works for <strong>@realDonaldTrump</strong>’s most recent posts (about 100) only — Truth Social blocks other ways of reading it.'] },
-    { t: 'Fixing the text', b: ['Click in the Post text box to correct anything the app got wrong or to trim a long post. You can delete words and fix typos, but most of the words must still come from the original post — the app refuses text that has been rewritten.'] },
+    { t: 'Fixing the text', b: ['Click in the Post text box to shorten a long post. You can delete words from the end only: the text must still begin exactly as the original post does, so nothing can be added, changed or cut from the middle. Typos in the post stay as the poster wrote them.'] },
   ]},
   { title: 'Highlighting', entries: [
     { t: 'Highlight words', b: ['Select words in the Post text box and click the <span class="hl">Highlight</span> button that appears above them. Only the words you selected are highlighted, even if the same phrase appears elsewhere in the post.',

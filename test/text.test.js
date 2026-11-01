@@ -56,7 +56,9 @@ test('postFromToken: untouched text passes; rewrites, empties and forged tokens 
   assert.equal(postFromToken(token).text, 'alpha beta gamma delta');
   assert.equal(postFromToken(token, '  alpha beta gamma delta\n').text, 'alpha beta gamma delta');
   assert.equal(postFromToken(token, '  alpha beta').shift, 2);
-  assert.throws(() => postFromToken(token, 'entirely different words here now'), /not rewritten/);
+  assert.equal(postFromToken(token, 'alpha beta').text, 'alpha beta');
+  assert.throws(() => postFromToken(token, 'beta gamma delta'), /shortened from the end/);
+  assert.throws(() => postFromToken(token, 'entirely different words here now'), /shortened from the end/);
   assert.throws(() => postFromToken(token, '   '), /empty/);
   assert.throws(() => postFromToken('nope.nope', 'alpha'), InputError);
 });

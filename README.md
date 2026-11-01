@@ -14,8 +14,7 @@ counts or engagement buttons — on a white matte, so the result drops cleanly u
 1. **Fetch** — paste an X or Truth Social link. The app reads the post's text, name, handle,
    profile picture and verified badge straight from the source (it never screenshots the live
    page, so it keeps working when those sites change their layout).
-2. **Check** — fix anything the app got wrong or trim a long post, and highlight passages
-   directly in the text.
+2. **Check** — shorten a long post from the end, and highlight passages directly in the text.
 3. **Choose** — format, opening hold, how the opening shot looks, and an optional scroll (reached by a straight cut or a zoom)
    for long posts.
 4. **Create** — preview the first frame, then render. The finished video plays in the same
@@ -29,7 +28,7 @@ Everything is explained in the app's **Help** button (top right). The short vers
 | Step | What to do |
 |---|---|
 | **1. Get the post** | Paste the link and press **Fetch post** (or Enter). |
-| **2. Check the text** | Correct typos or trim. To highlight, select words and click **Highlight** (select highlighted words and click **Remove highlight** to undo). Highlights fade in yellow 5 seconds into the video. Click **Update preview** to see them. |
+| **2. Check the text** | Trim a long post from the end only. To highlight, select words and click **Highlight** (select highlighted words and click **Remove highlight** to undo). Highlights fade in yellow 5 seconds into the video. Click **Update preview** to see them. |
 | **3. Make the video** | **Format** 60i or 50i · **Opening hold** 10 / 20 / 30 s · **Opening shot** whole post shrunk to fit, or the top of the post fading out · **Scroll to the end** (long posts only), reached by a **Straight cut** (default) or a **Zoom in**. |
 | **4. Preview** | Shows the video's first frame; after **Create video** it plays the result. **Download .mov** saves it. |
 | **5. Shotlist** | Check the **title** (read from the poster's bio when it says so clearly), **name**, **date** and **language**, then **Copy shotlist**. |
@@ -41,10 +40,10 @@ Long posts can take a minute or two to render — keep the tab open.
 | Source | Works for | Notes |
 |---|---|---|
 | **X** (x.com, twitter.com) | Any public post | Long posts are fetched in full. If the full text can't be retrieved the app refuses rather than make a video that cuts off mid-post. |
-| **Truth Social** | `@realDonaldTrump`, his ~100 most recent posts | Truth Social blocks automated access, so these come from the trumpstruth.org archive feed. No other accounts, no older posts. |
+| **Truth Social** | `@realDonaldTrump`, his ~100 most recent posts | Truth Social blocks automated access, so these come from the trumpstruth.org archive feed. No other accounts, no older posts, no reposts or quote posts. |
 
 The name, handle, profile picture and verified badge always come from the post and can't be
-changed. The text can be corrected or trimmed but not rewritten (see CONTRIBUTING.md §2.1).
+changed. The text can only be shortened from the end — nothing added, changed or cut from the middle (see CONTRIBUTING.md §2.1). Reposts, quote posts and posts with no text (image, video or link only) are refused.
 
 ### The suggested shotlist
 

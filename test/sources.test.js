@@ -52,6 +52,12 @@ test('X: t.co links are replaced by their display text, and trailing media links
   assert.equal((await fetchPost('https://x.com/ada/status/1')).text, 'Look example.com/story and');
 });
 
+test('X: the text range counts UTF-16 units, so emoji do not leave a stray piece of the media link', async () => {
+  routes.push(['syndication', 200, tweet({
+    text: 'Happy birthday 🟡🔵 https://t.co/media', display_text_range: [0, 19] })]);
+  assert.equal((await fetchPost('https://x.com/ada/status/1')).text, 'Happy birthday 🟡🔵');
+});
+
 test('X: a long ("note") post takes its full text from the lookup service', async () => {
   const full = 'Hello world. Second line. ' + 'More text. '.repeat(50);
   routes.push(['syndication', 200, tweet({ note_tweet: { id: 'x' } })], ['fxtwitter', 200, { tweet: { text: full } }]);
@@ -79,7 +85,7 @@ test('X: missing, deleted and text-less posts give clear errors', async () => {
 
 const feed = items => `<rss><channel>${items.map(i => `<item>
   <description><![CDATA[${i.html}]]></description><dc:creator>Donald J. Trump</dc:creator>
-  <pubDate>Mon, 26 Oct 2026 00:00:09 +0000</pubDate><truth:originalId>${i.id}</truth:originalId><archive:removed>${i.removed ? 'true' : 'false'}</archive:removed></item>`).join('')}</channel></rss>`;
+  <pubDate>Mon, 26 Oct 2026 00:00:09 +0000</pubDate><truth:originalId>${i.id}</truth:originalId><archive:removed>${i.removed ? 'true' : 'false'}</archive:removed><archive:postType>${i.type || 'original'}</archive:postType></item>`).join('')}</channel></rss>`;
 
 test('Truth Social: @realDonaldTrump posts come from the archive feed', async () => {
   routes.push(['trumpstruth.org/feed', 200, feed([{ id: '111', html: '<p>First</p>' }, { id: '222', html: '<p>Second &amp; last</p>' }])]);
@@ -93,6 +99,23 @@ test('Truth Social: @realDonaldTrump posts come from the archive feed', async ()
   assert.equal(p.lang, 'en');
   assert.equal(p.tz, 'America/New_York');
   assert.match(p.postedAt, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test('Truth Social: reposts, quote posts and posts with no text are refused; attachment lines are dropped', async () => {
+  const link = '<a href="https://www.youtube.com/live/abc?si=1"><span class="invisible">https://www.</span><span class="ellipsis">youtube.com/live/abc?s</span><span class="invisible">i=1</span></a>';
+  routes.push(['trumpstruth.org/feed', 200, feed([
+    { id: '1', type: 'repost', html: '<p>RT @someone</p>' },
+    { id: '2', type: 'quote', html: '<p>RT: https://truthsocial.com/users/x/statuses/1Hello</p>' },
+    { id: '3', html: '<p></p><p><a href="https://x.test/a.mp4">View video</a></p>' },
+    { id: '4', html: `<p>${link}</p>` },
+    { id: '5', html: '<p>Big news today.</p><p></p><p><a href="https://x.test/a.jpg">View image</a></p><p><a href="https://x.test/b.jpg">View image</a></p>' },
+  ])]);
+  const code = id => fetchPost(`https://truthsocial.com/@realDonaldTrump/posts/${id}`);
+  await assert.rejects(code(1), e => e.code === 'unsupported_post');
+  await assert.rejects(code(2), e => e.code === 'unsupported_post');
+  await assert.rejects(code(3), e => e.code === 'no_text');
+  await assert.rejects(code(4), e => e.code === 'no_text');
+  assert.equal((await code(5)).text, 'Big news today.');
 });
 
 test('Truth Social: other accounts, old posts and removed posts are refused', async () => {
