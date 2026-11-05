@@ -93,7 +93,18 @@ INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
 
 ffmpeg needs no install: a binary ships with the `ffmpeg-static` package.
 
-### Install and run
+### Quick start on a Mac (testers)
+
+1. On the GitHub page click **Code → Download ZIP**, then unzip it.
+2. Install [Node.js LTS](https://nodejs.org) and Google Chrome if you don't have them.
+3. Double-click **`start.command`**. The first run installs dependencies (about a minute), then the
+   app opens in your browser at http://localhost:5002. Close the Terminal window to stop it.
+
+If macOS says it "can't be opened because it is from an unidentified developer", right-click
+`start.command` → **Open** → **Open** (needed once). Or run `bash start.command` in Terminal.
+On the corporate network the launcher builds its own certificate bundle automatically.
+
+### Install and run (developers)
 
 ```bash
 npm install
