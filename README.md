@@ -96,9 +96,14 @@ ffmpeg needs no install: a binary ships with the `ffmpeg-static` package.
 ### Quick start on a Mac (testers)
 
 1. On the GitHub page click **Code → Download ZIP**, then unzip it.
-2. Install [Node.js LTS](https://nodejs.org) and Google Chrome if you don't have them.
-3. Double-click **`start.command`**. The first run installs dependencies (about a minute), then the
-   app opens in your browser at http://localhost:5002. Close the Terminal window to stop it.
+2. Double-click **`start.command`**.
+
+That's it. On first run the launcher installs whatever is missing — no admin password, no
+Homebrew: **Node.js** (into the app's own `.runtime/` folder), **Google Chrome** (into
+`~/Applications`, only if you don't have it) and the app's dependencies — then opens the app at
+http://localhost:5002. The first run takes a few minutes; later runs start in seconds. Close the
+Terminal window to stop it. To undo what it installed, delete the `.runtime` folder (and
+`~/Applications/Google Chrome.app` if the launcher added it).
 
 If macOS says it "can't be opened because it is from an unidentified developer", right-click
 `start.command` → **Open** → **Open** (needed once). Or run `bash start.command` in Terminal.
