@@ -51,9 +51,9 @@ Written in the page from the post and the options you chose, following the RVN s
 screenshot guidance:
 
 ```
-INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
+INTERNET (OCTOBER 26, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
 
-1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, ZOOMING IN AND SCROLLING DOWN, READING (English):
+1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, DATED OCTOBER 25, 2026, ZOOMING IN AND SCROLLING DOWN, READING (English):
 
     “Let’s talk about this COMPLETE AND TOTAL LOSER, Bill Maher. …”
 ```
@@ -65,7 +65,7 @@ INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
 - **Date** is when the post was made: in New York time for Trump's Truth Social posts (so a post
   at 00:00 UTC is dated the day before), and the UTC date for X, which gives no time zone. Change it
   if the poster's local day differs. **Language** is named for every post, English included.
-- **Archive.** A post more than a calendar month old reads `INTERNET (ARCHIVE - AUGUST 15, 2026) …`; the label follows the date if you edit it.
+- **Dateline vs post date.** The dateline shows today's date (the screenshot's). The post's own date goes in the first shot as `DATED OCTOBER 25, 2026`, and only when it differs from today. There is no ARCHIVE label.
 - **Highlights** are marked in the quote as `[START HIGHLIGHT] … [END HIGHLIGHT]` (with a space inside each marker).
 - Anything the app can't know is shown as a yellow `[PLACEHOLDER]`, never guessed — and **Copy shotlist** refuses until the title, name, date and language are all filled in, with a pop-up saying what's missing.
 

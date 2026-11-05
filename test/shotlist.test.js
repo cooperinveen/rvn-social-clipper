@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isArchive, buildShotlist, datelineDate, localDate, languageName, shotlistName, shotsFor, markHighlights, normalizeTitle, normalizeName, normalizeLanguage } from '../public/shotlist.js';
+import { buildShotlist, datelineDate, localDate, languageName, shotlistName, shotsFor, markHighlights, normalizeTitle, normalizeName, normalizeLanguage } from '../public/shotlist.js';
 import { suggestTitle } from '../lib/title.js';
 
 const trump = { platform: 'truth', title: 'US PRESIDENT', name: 'Donald Trump', date: '2026-10-25', language: 'English' };
@@ -47,9 +47,9 @@ test('zoom + scroll on a long Truth Social post reproduces the desk\'s example',
   const text = 'Let’s talk about this COMPLETE AND TOTAL LOSER, Bill Maher. He’s got a Low Rated Show.\n\nNo sooner had we had that first dinner at the White House, Bill wanted to come back. President DONALD J. TRUMP';
   const out = buildShotlist({ ...trump, text }, { zoom: true, scroll: true, today: '2026-10-26' });
   assert.equal(out, [
-    'INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)',
+    'INTERNET (OCTOBER 26, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)',
     '',
-    '1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, ZOOMING IN AND SCROLLING DOWN, READING (English):',
+    '1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, DATED OCTOBER 25, 2026, ZOOMING IN AND SCROLLING DOWN, READING (English):',
     '',
     '    “Let’s talk about this COMPLETE AND TOTAL LOSER, Bill Maher. He’s got a Low Rated Show.',
     '',
@@ -61,19 +61,20 @@ test('a short single-paragraph post is quoted on the shot line, in the post\'s o
   const out = buildShotlist({ platform: 'x', title: 'CUBAN PRESIDENT', name: 'Miguel Díaz-Canel', date: '2026-06-04', language: 'Spanish',
     text: 'The U.S. president has made new threatening statements against Cuba.' }, { today: '2026-06-05' });
   assert.equal(out, [
-    'INTERNET (JUNE 4, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)',
+    'INTERNET (JUNE 5, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)',
     '',
-    '1. SCREENSHOT OF X POST BY CUBAN PRESIDENT, MIGUEL DÍAZ-CANEL, READING (Spanish): “The U.S. president has made new threatening statements against Cuba.”',
+    '1. SCREENSHOT OF X POST BY CUBAN PRESIDENT, MIGUEL DÍAZ-CANEL, DATED JUNE 4, 2026, READING (Spanish): “The U.S. president has made new threatening statements against Cuba.”',
   ].join('\n'));
 });
 
 test('a scroll after a cut is two shots, and the text is not repeated', () => {
   const text = 'Para one.\n\nPara two.';
-  const cut = buildShotlist({ ...trump, text }, { scroll: true, openingCut: true });
+  const same = { ...trump, date: '2026-10-26' }, today = '2026-10-26';   // same-day post: no DATED to get in the way
+  const cut = buildShotlist({ ...same, text }, { scroll: true, openingCut: true, today });
   assert.match(cut, /^1\. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP$/m);            // no quote on shot 1
   assert.match(cut, /^2\. SCREENSHOT OF SAME TRUMP TRUTH SOCIAL POST, SCROLLING DOWN, READING \(English\):$/m);
   assert.equal((cut.match(/Para one/g) || []).length, 1);
-  const whole = buildShotlist({ ...trump, text }, { scroll: true, openingCut: false });
+  const whole = buildShotlist({ ...same, text }, { scroll: true, openingCut: false, today });
   assert.match(whole, /^1\. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, READING \(English\):$/m);
   assert.match(whole, /^2\. SCREENSHOT OF SAME TRUMP TRUTH SOCIAL POST, SCROLLING DOWN$/m);
   assert.equal((whole.match(/Para one/g) || []).length, 1);
@@ -81,9 +82,9 @@ test('a scroll after a cut is two shots, and the text is not repeated', () => {
 
 test('missing pieces are shown as obvious placeholders, never invented', () => {
   const out = buildShotlist({ platform: 'x', title: '', name: '', date: '', language: '', text: 'hello' }, {});
-  assert.match(out, /^INTERNET \(\[DATE\]\)/);
-  assert.match(out, /POST BY \[TITLE\], \[NAME\], READING \(\[LANGUAGE\]\):/);
-  const noTitle = buildShotlist({ platform: 'x', name: 'Ada', date: '2026-01-02', language: 'English', text: 'hi' }, { today: '2026-01-03' });
+  assert.match(out, /^INTERNET \(\w+ \d+, \d{4}\)/);                                                       // the dateline is always today's date
+  assert.match(out, /POST BY \[TITLE\], \[NAME\], DATED \[DATE\], READING \(\[LANGUAGE\]\):/);
+  const noTitle = buildShotlist({ platform: 'x', name: 'Ada', date: '2026-01-03', language: 'English', text: 'hi' }, { today: '2026-01-03' });
   assert.match(noTitle, /POST BY \[TITLE\], ADA, READING \(English\)/);                                   // each gap is flagged on its own
   assert.doesNotMatch(noTitle, /\[NAME\]|\[DATE\]|\[LANGUAGE\]/);
 });
@@ -134,25 +135,23 @@ test('a highlight in a long post is marked where it is, and only on the shot tha
   assert.match(out, /\n    Second paragraph with a \[START HIGHLIGHT\] key phrase \[END HIGHLIGHT\] inside it\.”$/);
 });
 
-test('archive: a date more than a calendar month old is labelled; exactly one month is not', () => {
-  assert.equal(isArchive('2026-08-15', '2026-10-26'), true);
-  assert.equal(isArchive('2026-09-25', '2026-10-26'), true);
-  assert.equal(isArchive('2026-09-26', '2026-10-26'), false);          // exactly a month ago
-  assert.equal(isArchive('2026-10-25', '2026-10-26'), false);
-  assert.equal(isArchive('2026-10-27', '2026-10-26'), false);          // a date in the future is not archive
-  assert.equal(isArchive('2026-02-27', '2026-03-31'), true);           // 31 Mar - 1 month clamps to 28 Feb
-  assert.equal(isArchive('2026-02-28', '2026-03-31'), false);
-  assert.equal(isArchive('2025-12-14', '2026-01-15'), true);           // across a year boundary
-  assert.equal(isArchive('2025-12-15', '2026-01-15'), false);
-  assert.equal(isArchive('', '2026-10-26'), false);
-  assert.equal(isArchive('2026-08-15', ''), false);
+test('dateline is today; the post date appears as DATED only when it differs', () => {
+  const f = { platform: 'x', name: 'Ada', title: 'CEO', language: 'English', text: 'hi' };
+  const today = { today: '2026-10-26' };
+  const old = buildShotlist({ ...f, date: '2026-08-15' }, today);
+  assert.match(old, /^INTERNET \(OCTOBER 26, 2026\) \(SOCIAL MEDIA WEBSITE - Access All\) \(MUTE\)/);   // no ARCHIVE label, however old
+  assert.match(old, /POST BY CEO, ADA, DATED AUGUST 15, 2026, READING \(English\)/);
+  assert.match(buildShotlist({ ...f, date: '2026-10-25' }, today), /POST BY CEO, ADA, DATED OCTOBER 25, 2026, READING/);
+  assert.doesNotMatch(buildShotlist({ ...f, date: '2026-10-26' }, today), /DATED/);                          // same day: no DATED
+  assert.match(buildShotlist({ ...f, date: '' }, today), /POST BY CEO, ADA, DATED \[DATE\], READING/);       // unknown date is flagged
 });
 
-test('archive: the dateline says ARCHIVE for an old post, and follows an edited date', () => {
-  const f = { platform: 'x', name: 'Ada', language: 'English', text: 'hi' };
-  assert.match(buildShotlist({ ...f, date: '2026-08-15' }, { today: '2026-10-26' }), /^INTERNET \(ARCHIVE - AUGUST 15, 2026\) \(SOCIAL MEDIA WEBSITE - Access All\) \(MUTE\)/);
-  assert.match(buildShotlist({ ...f, date: '2026-10-25' }, { today: '2026-10-26' }), /^INTERNET \(OCTOBER 25, 2026\) \(SOCIAL/);
-  assert.match(buildShotlist({ ...f, date: '' }, { today: '2026-10-26' }), /^INTERNET \(\[DATE\]\) \(SOCIAL/);      // no date, no label
+test('DATED goes before the motion, and only on the first shot', () => {
+  const f = { platform: 'x', name: 'Ada Lovelace', title: 'CEO', language: 'English', text: 'hi', date: '2026-10-25' };
+  assert.match(buildShotlist(f, { zoom: true, scroll: true, today: '2026-10-26' }), /POST BY CEO, ADA LOVELACE, DATED OCTOBER 25, 2026, ZOOMING IN AND SCROLLING DOWN, READING/);
+  const cut = buildShotlist(f, { scroll: true, openingCut: true, today: '2026-10-26' });
+  assert.match(cut, /^1\. SCREENSHOT OF X POST BY CEO, ADA LOVELACE, DATED OCTOBER 25, 2026$/m);
+  assert.match(cut, /^2\. SCREENSHOT OF SAME LOVELACE X POST, SCROLLING DOWN, READING/m);                    // same post: no second date
 });
 
 test('capitalisation is forced: title and name in capitals, language like a proper noun', () => {
@@ -163,6 +162,6 @@ test('capitalisation is forced: title and name in capitals, language like a prop
   assert.equal(normalizeLanguage('brazilian PORTUGUESE'), 'Brazilian Portuguese');
   assert.equal(normalizeLanguage('mandarin/cantonese'), 'Mandarin/Cantonese');
   assert.equal(normalizeLanguage(''), '');
-  const out = buildShotlist({ platform: 'x', title: 'chief executive', name: 'sam altman', date: '2026-10-20', language: 'ENGLISH', text: 'hello' }, { today: '2026-10-26' });
+  const out = buildShotlist({ platform: 'x', title: 'chief executive', name: 'sam altman', date: '2026-10-26', language: 'ENGLISH', text: 'hello' }, { today: '2026-10-26' });
   assert.match(out, /POST BY CHIEF EXECUTIVE, SAM ALTMAN, READING \(English\): “hello”/);
 });

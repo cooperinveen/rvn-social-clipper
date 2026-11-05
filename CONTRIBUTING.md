@@ -129,9 +129,10 @@ example (`test/shotlist.test.js` reproduces it line for line). The rules that ma
   guessing. `lib/title.js` answers only when a bio plainly says "<role> of <country>" or
   "<organisation> CEO"; otherwise it returns `null`. Keep it conservative: a wrong title in a
   shotlist is an editorial error.
-- **Archive:** a date more than a calendar month before today is labelled `ARCHIVE - ` in the
-  dateline (`isArchive()`; exactly one month ago is not yet archive). It's judged against the reader's
-  current date, so tests pass `today` explicitly.
+- **Dateline = today, post date = `DATED …`:** the dateline carries the screenshot's date (the reader's
+  current date; tests pass `today` explicitly). The first shot adds `, DATED <post date>` only when the post's
+  date differs from today; a missing date shows `DATED [DATE]`. No ARCHIVE label (dropped 2026-11-05 per the
+  updated style guide).
 - **Date is the post's local date** (Truth Social/Trump: New York time; X: UTC, editable).
 The shotlist is built in the page — the server only supplies `postedAt`, `tz`, `lang`, `bio` and
 `title`, none of which are signed or used in the video.

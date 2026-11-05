@@ -2,10 +2,12 @@
 // the page and the tests (test/shotlist.test.js) use the same code.
 //
 // The format follows the RVN social-media screenshot guidance:
-//   INTERNET (OCTOBER 25, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
-//   (a post more than a month old reads INTERNET (ARCHIVE - AUGUST 15, 2026) …)
+//   INTERNET (OCTOBER 26, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
 //
-//   1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, ZOOMING IN AND SCROLLING DOWN, READING (English):
+//   1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, DATED OCTOBER 25, 2026, ZOOMING IN AND SCROLLING DOWN, READING (English):
+//
+// The dateline carries the date of the screenshot (today). The post's own date goes in the first shot,
+// as DATED …, only when it differs from the dateline date.
 //
 //       "The post, exactly as written…"
 //
@@ -24,17 +26,6 @@ export function localDate(isoInstant, tz = 'UTC') {
   const d = new Date(isoInstant);
   if (Number.isNaN(d.getTime())) return '';
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-}
-
-// Is this date more than a calendar month before today? Such posts are labelled ARCHIVE in the
-// dateline. Exactly one month ago is not yet archive; a day shorter than the target month clamps
-// to its last day (31 March - 1 month = 28 February).
-export function isArchive(ymd, todayYmd) {
-  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || ''), t = /^(\d{4})-(\d{2})-(\d{2})$/.exec(todayYmd || '');
-  if (!d || !t) return false;
-  const lastDay = new Date(Date.UTC(+t[1], +t[2] - 1, 0)).getUTCDate();          // days in the month before today's
-  const cutoff = new Date(Date.UTC(+t[1], +t[2] - 2, Math.min(+t[3], lastDay)));
-  return Date.UTC(+d[1], +d[2] - 1, +d[3]) < cutoff.getTime();
 }
 
 // 'YYYY-MM-DD' -> 'OCTOBER 25, 2026'
@@ -109,23 +100,23 @@ function quoteBlock(shown, plain) {
 }
 
 // fields: { platform, title, name, date ('YYYY-MM-DD'), language, text, highlights: [{start, end}] }
-// options: { zoom, scroll, openingCut, today ('YYYY-MM-DD', defaults to the current date) }
+// options: { zoom, scroll, openingCut, today ('YYYY-MM-DD' — the dateline date; defaults to the current date) }
 export function buildShotlist(fields, options = {}) {
   const platform = PLATFORM_NAMES[fields.platform] || String(fields.platform || '').toUpperCase();
   const name = normalizeName(fields.name);
   const title = normalizeTitle(fields.title);
   const who = `${title || '[TITLE]'}, ${name || '[NAME]'}`;          // always a comma after the title
   const language = normalizeLanguage(fields.language) || '[LANGUAGE]';
-  const today = options.today || localDate(Date.now(), undefined);   // the reader's own date
-  const date = (isArchive(fields.date, today) ? 'ARCHIVE - ' : '') + (datelineDate(fields.date) || '[DATE]');
+  const today = options.today || localDate(Date.now(), undefined);   // the screenshot's date: the reader's own date
+  const dated = fields.date === today ? '' : `, DATED ${datelineDate(fields.date) || '[DATE]'}`;   // only when the post is from another day
   const raw = String(fields.text || '');
   const lead = raw.length - raw.trimStart().length;            // highlight offsets count from the untrimmed text
   const text = raw.trim();
   const shown = markHighlights(text, (fields.highlights || []).map(r => ({ start: r.start - lead, end: r.end - lead })));
 
-  const out = [`INTERNET (${date}) (${DATELINE_SOURCE}) (MUTE)`];
+  const out = [`INTERNET (${datelineDate(today)}) (${DATELINE_SOURCE}) (MUTE)`];
   shotsFor(options).forEach((shot, i) => {
-    let line = `${i + 1}. ` + (shot.samePost ? `SCREENSHOT OF SAME ${name ? name.split(' ').pop() : '[NAME]'} ${platform} POST` : `SCREENSHOT OF ${platform} POST BY ${who}`);
+    let line = `${i + 1}. ` + (shot.samePost ? `SCREENSHOT OF SAME ${name ? name.split(' ').pop() : '[NAME]'} ${platform} POST` : `SCREENSHOT OF ${platform} POST BY ${who}${dated}`);
     if (shot.motion) line += `, ${shot.motion}`;
     if (shot.quote && text) {
       line += `, READING (${language}):`;
