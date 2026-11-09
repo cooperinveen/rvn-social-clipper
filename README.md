@@ -29,7 +29,7 @@ Everything is explained in the app's **Help** button (top right). The short vers
 |---|---|
 | **1. Get the post** | Paste the link and press **Fetch post** (or Enter). |
 | **2. Check the text** | Trim a long post from the end only. To highlight, select words and click **Highlight** (select highlighted words and click **Remove highlight** to undo). Highlights fade in yellow 5 seconds into the video. Click **Update preview** to see them. |
-| **3. Make the video** | **Format** 60i or 50i · **Opening hold** 10 / 20 / 30 s · **Opening shot** whole post shrunk to fit, or the top of the post fading out · **Scroll to the end** (long posts only), reached by a **Straight cut** (default) or a **Zoom in**. |
+| **3. Make the video** | **Format** 60i or 50i · **Opening hold** 5 / 10 / 20 / 30 s (dropdown) · **Opening shot** whole post shrunk to fit, or the top of the post fading out · **Scroll to the end** (long posts only), reached by a **Straight cut** (default) or a **Zoom in**. |
 | **4. Preview** | Shows the video's first frame; after **Create video** it plays the result. **Download .mov** saves it. |
 | **5. Shotlist** | Check the **title** (read from the poster's bio when it says so clearly), **name**, **date** and **language**, then **Copy shotlist**. |
 
@@ -77,7 +77,7 @@ INTERNET (OCTOBER 26, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
 | Resolution | 1920 × 1080 |
 | Scan | Interlaced, top field first — **60i = 30 fps**, **50i = 25 fps** |
 | Colour | BT.709, limited range, tagged |
-| Timeline | opening hold (10/20/30 s) → zoom (10 s, optional) → scroll (optional) |
+| Timeline | opening hold (5/10/20/30 s) → zoom (10 s, optional) → scroll (optional) |
 | Highlights | clean for 5 s, a 0.4 s fade to yellow, then held |
 | Size | a short post is a few hundred KB; a long scroll runs about 1.5 MB per second of video |
 
@@ -200,7 +200,7 @@ All endpoints take and return JSON, except `/api/render`, which returns the vide
 | `POST /api/render` | `{ token, text?, highlights?, format, opening, baseSeconds, zoom, scroll, scrollSeconds }` | `video/quicktime`, with `x-video-seconds` and `x-render-ms` headers |
 
 `highlights` is a list of `{ start, end }` character offsets into `text`. `format` is `60i` or
-`50i`; `opening` is `fit` or `top`; `baseSeconds` is 10, 20 or 30; `scrollSeconds` is a number
+`50i`; `opening` is `fit` or `top`; `baseSeconds` is 5, 10, 20 or 30; `scrollSeconds` is a number
 from 4 to 180, or `auto`.
 
 ## Known Limitations

@@ -405,7 +405,7 @@ $('makeBtn').onclick = async () => {
       ...postFields(),
       format: checked('format'),
       opening: checked('opening'),
-      baseSeconds: Number(checked('base')),
+      baseSeconds: Number($('base').value),
       zoom: zoomOn(),
       scroll: $('scroll').checked,
       scrollSeconds: $('scroll').checked ? $('scrollSeconds').value : undefined,

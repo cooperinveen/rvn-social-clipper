@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const body = readJson(req);
     const format = body.format === '50i' ? '50i' : '60i';
     const opening = body.opening === 'top' ? 'top' : 'fit';
-    const baseSeconds = [10, 20, 30].includes(Number(body.baseSeconds)) ? Number(body.baseSeconds) : 10;
+    const baseSeconds = [5, 10, 20, 30].includes(Number(body.baseSeconds)) ? Number(body.baseSeconds) : 10;
     let scrollSeconds;
     if (body.scrollSeconds != null && body.scrollSeconds !== '' && body.scrollSeconds !== 'auto') {
       scrollSeconds = Number(body.scrollSeconds);

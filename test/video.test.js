@@ -65,6 +65,17 @@ test('50i is 25 fps', async () => {
   assert.match(info(out), /25 fps/);
 });
 
+test('a 5s opening hold is exactly 5s, and its highlight arrives at 2s so it is actually seen', async () => {
+  const out = path.join(tmp, 'five.mov');
+  const r = await renderVideo(await card(900), { baseSeconds: 5, highlightedPng: await card(900, { highlight: true }) }, out);
+  assert.equal(r.durationSeconds, 5);
+  assert.ok(Math.abs(seconds(out) - 5) < 0.2);
+  const yellow = f => execFileSync(ffmpegPath(), ['-v', 'error', '-ss', String(f), '-i', out, '-frames:v', '1', '-vf', 'format=rgb24', '-f', 'rawvideo', '-'], { maxBuffer: 1e8 });
+  const count = buf => { let n = 0; for (let i = 0; i < buf.length; i += 3) if (buf[i] > 240 && buf[i + 1] > 240 && buf[i + 2] < 60) n++; return n; };
+  assert.equal(count(yellow(1)), 0);
+  assert.ok(count(yellow(4)) > 5000);
+});
+
 test('highlights fade in after the pre-highlight hold, and not before', async () => {
   const out = path.join(tmp, 'hl.mov');
   await renderVideo(await card(900), { baseSeconds: 10, highlightedPng: await card(900, { highlight: true }) }, out);
