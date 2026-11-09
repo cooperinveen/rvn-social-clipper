@@ -1,4 +1,4 @@
-# Social Video Generator
+# RVN Social Clipper
 
 Turn an X or Truth Social post into a broadcast-ready video. Paste a link, check the text,
 optionally highlight key passages, pick a few options, and download a 1080 interlaced `.mov`
@@ -166,7 +166,7 @@ NODE_EXTRA_CA_CERTS=/path/to/corp-ca.pem npm run dev
 ### Project structure
 
 ```
-social-video-generator/
+rvn-social-clipper/
 ├── api/                  # Vercel-style handlers: (req, res) functions, one per endpoint
 │   ├── post.js           #   POST {url}            → { post, token }
 │   ├── preview.js        #   POST {token, …}       → first-frame JPEGs + facts for the UI

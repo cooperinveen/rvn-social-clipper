@@ -71,5 +71,5 @@ if curl -s -o /dev/null "$URL"; then
   echo "Already running — opening $URL"; open "$URL"; exit 0
 fi
 ( for _ in $(seq 1 30); do curl -s -o /dev/null "$URL" && { open "$URL"; break; }; sleep 1; done ) &
-step "Starting Social Video Generator at $URL — close this window (or press Ctrl+C) to stop it."
+step "Starting RVN Social Clipper at $URL — close this window (or press Ctrl+C) to stop it."
 node --env-file-if-exists=.env server.js

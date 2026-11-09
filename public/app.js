@@ -1,4 +1,4 @@
-// Social Video Generator — front end. No framework, no build step.
+// RVN Social Clipper — front end. No framework, no build step.
 // Flow: fetch a post (signed by the server) → check/fix its text and highlight passages →
 // choose options → preview the first frame → render the video into the same stage.
 import { buildShotlist, localDate, languageName, shotlistName, normalizeTitle, normalizeName, normalizeLanguage } from './shotlist.js';
