@@ -88,7 +88,7 @@ test('highlights fade in after the pre-highlight hold, and not before', async ()
 test('zoom really zooms (the text grows) and ends where the scroll begins', async () => {
   const out = path.join(tmp, 'zoom.mov');
   await renderVideo(await card(3000), { opening: 'top', zoom: true, scroll: true, scrollSeconds: 6, baseSeconds: 10 }, out);
-  assert.ok(Math.abs(seconds(out) - (10 + CONFIG.zoomSeconds + 6)) < 0.3);
+  assert.ok(Math.abs(seconds(out) - (10 + CONFIG.zoomSeconds + CONFIG.scrollLeadInSeconds + 6 + CONFIG.scrollTailSeconds)) < 0.3);
   const start = darkColumns(frameAt(out, 10.2)), mid = darkColumns(frameAt(out, 15)), end = darkColumns(frameAt(out, 19.8));
   assert.ok(mid > start * 1.15, `zoom should be growing: ${start} -> ${mid}`);
   assert.ok(end > mid * 1.05, `zoom should keep growing: ${mid} -> ${end}`);
@@ -97,11 +97,16 @@ test('zoom really zooms (the text grows) and ends where the scroll begins', asyn
   assert.ok(meanDiff(before, after) < 1.5, `jump at the zoom→scroll seam: ${meanDiff(before, after)}`);
 });
 
-test('scroll moves through the whole card', async () => {
+test('scroll holds 2s on the top, moves through the whole card, then holds 3s on the end', async () => {
   const out = path.join(tmp, 'scroll.mov');
-  await renderVideo(await card(3000), { opening: 'top', scroll: true, scrollSeconds: 6 }, out);
-  const a = frameAt(out, 10.3), b = frameAt(out, 13), c = frameAt(out, 15.9);
+  const r = await renderVideo(await card(3000), { opening: 'top', scroll: true, scrollSeconds: 6 }, out);
+  // 10s opening hold, then 2s still + 6s scroll + 3s still
+  assert.equal(r.durationSeconds, 10 + 2 + 6 + 3);
+  assert.ok(Math.abs(seconds(out) - 21) < 0.3);
+  assert.ok(meanDiff(frameAt(out, 10.2), frameAt(out, 11.8)) < 0.5, 'lead-in should be still');
+  const a = frameAt(out, 12.3), b = frameAt(out, 15), c = frameAt(out, 17.9);
   assert.ok(meanDiff(a, b) > 1 && meanDiff(b, c) > 1, 'frames should keep changing during the scroll');
+  assert.ok(meanDiff(frameAt(out, 18.2), frameAt(out, 20.8)) < 0.5, 'tail should be still');
 });
 
 test('zoom from the whole post is refused on very tall cards, with a clear error', async () => {

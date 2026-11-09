@@ -77,7 +77,7 @@ INTERNET (OCTOBER 26, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
 | Resolution | 1920 × 1080 |
 | Scan | Interlaced, top field first — **60i = 30 fps**, **50i = 25 fps** |
 | Colour | BT.709, limited range, tagged |
-| Timeline | opening hold (5/10/20/30 s) → zoom (10 s, optional) → scroll (optional) |
+| Timeline | opening hold (5/10/20/30 s) → zoom (10 s, optional) → scroll (optional: 2 s still on the top, the scroll, 3 s still on the end) |
 | Highlights | clean for 5 s, a 0.4 s fade to yellow, then held |
 | Size | a short post is a few hundred KB; a long scroll runs about 1.5 MB per second of video |
 
