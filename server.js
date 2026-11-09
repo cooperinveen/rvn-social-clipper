@@ -4,9 +4,11 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { authEnabled, currentUser, handleAuth } from './lib/auth.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 5002;
+const SIGN_IN = authEnabled();
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.png': 'image/png', '.woff2': 'font/woff2', '.woff': 'font/woff', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
 
 async function body(req) {
@@ -19,6 +21,11 @@ async function body(req) {
 http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
+    if (url.pathname.startsWith('/auth/')) return await handleAuth(req, res, url.pathname.slice(6));
+    // Pages need a signed-in user; the API checks for itself (lib/pipeline.js) and answers 401.
+    if (SIGN_IN && !url.pathname.startsWith('/api/') && !currentUser(req)) {
+      res.statusCode = 302; res.setHeader('location', '/auth/login'); res.setHeader('cache-control', 'no-store'); return res.end();
+    }
     if (url.pathname.startsWith('/api/')) {
       const name = url.pathname.slice(5).replace(/[^\w-]/g, '');
       const file = path.join(root, 'api', `${name}.js`);
@@ -34,4 +41,4 @@ http.createServer(async (req, res) => {
     res.setHeader('content-type', TYPES[path.extname(file)] || 'application/octet-stream');
     fs.createReadStream(file).pipe(res);
   } catch (e) { console.error(e); if (!res.headersSent) res.statusCode = 500; res.end('Server error'); }
-}).listen(PORT, '127.0.0.1', () => console.log(`RVN Social Clipper → http://localhost:${PORT}`));
+}).listen(PORT, '127.0.0.1', () => console.log(`RVN Social Clipper → http://localhost:${PORT}  (Microsoft sign-in ${SIGN_IN ? 'ON' : 'off — no AZURE_CLIENT_ID'})`));

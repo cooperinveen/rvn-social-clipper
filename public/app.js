@@ -25,6 +25,7 @@ function say(el, text, kind) {
 
 async function api(name, body) {
   const res = await fetch('/api/' + name, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  if (res.status === 401) { location.reload(); throw new Error('Signing you in again…'); }   // session expired
   if (!res.ok) {
     let msg = `Request failed (${res.status}).`;
     try { msg = (await res.json()).error || msg; } catch { /* body wasn't JSON */ }
