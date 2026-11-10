@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildShotlist, datelineDate, localDate, languageName, shotlistName, shotsFor, markHighlights, normalizeTitle, normalizeName, normalizeLanguage } from '../public/shotlist.js';
+import { buildShotlist, datelineDate, localDate, languageName, shotlistName, shotsFor, highlightNote, normalizeTitle, normalizeName, normalizeLanguage } from '../public/shotlist.js';
 import { suggestTitle } from '../lib/title.js';
 
 const trump = { platform: 'truth', title: 'US PRESIDENT', name: 'Donald Trump', date: '2026-10-25', language: 'English' };
@@ -108,31 +108,47 @@ test('titles: suggested only when the bio clearly says so', () => {
   for (const [bio, expected] of cases) assert.equal(suggestTitle(bio), expected, String(bio));
 });
 
-test('highlights are marked in the quote with [START HIGHLIGHT] / [END HIGHLIGHT]', () => {
-  assert.equal(markHighlights('He’s got a Low Rated Show on HBO.', [{ start: 11, end: 25 }]), 'He’s got a [START HIGHLIGHT] Low Rated Show [END HIGHLIGHT] on HBO.');
-  assert.equal(markHighlights('abc', []), 'abc');
-  assert.equal(markHighlights('abc def', [{ start: 4, end: 7 }, { start: 0, end: 3 }]), '[START HIGHLIGHT] abc [END HIGHLIGHT] [START HIGHLIGHT] def [END HIGHLIGHT]');
-  assert.equal(markHighlights('abc', [{ start: 5, end: 9 }]), 'abc');                         // out of range: ignored
+test('highlights are listed after the quote, never written inside the poster’s words', () => {
+  assert.equal(highlightNote('He’s got a Low Rated Show on HBO.', [{ start: 11, end: 25 }]), 'HIGHLIGHT APPEARS OVER "Low Rated Show"');
+  assert.equal(highlightNote('abc', []), '');
+  assert.equal(highlightNote('abc def', [{ start: 4, end: 7 }, { start: 0, end: 3 }]), 'HIGHLIGHTS APPEAR OVER "abc" AND "def"');   // in reading order
+  assert.equal(highlightNote('a b c', [{ start: 0, end: 1 }, { start: 2, end: 3 }, { start: 4, end: 5 }]), 'HIGHLIGHTS APPEAR OVER "a", "b" AND "c"');
+  assert.equal(highlightNote('one\ntwo', [{ start: 0, end: 7 }]), 'HIGHLIGHT APPEARS OVER "one two"');                          // across lines
+  assert.equal(highlightNote('abc', [{ start: 5, end: 9 }]), '');                                                                 // out of range: ignored
 });
 
-test('highlight markers sit in the right place in a built shotlist, and keep a short post inline', () => {
+test('the highlight note follows a short inline quote', () => {
   const text = 'Putin does not want it. He does not want it.';
   const start = text.lastIndexOf('does not want it');
   const out = buildShotlist({ platform: 'x', title: '', name: 'Ada', date: '2026-01-02', language: 'English', text, highlights: [{ start, end: start + 16 }] }, {});
-  assert.match(out, /READING \(English\): “Putin does not want it\. He \[START HIGHLIGHT\] does not want it \[END HIGHLIGHT\]\.”$/);
+  assert.match(out, /READING \(English\): “Putin does not want it\. He does not want it\.” \/ HIGHLIGHT APPEARS OVER "does not want it"$/);
+  assert.ok(!out.includes('[START'));
 });
 
 test('highlight offsets count from the untrimmed text the page sends', () => {
   const out = buildShotlist({ platform: 'x', name: 'Ada', date: '2026-01-02', language: 'English', text: '  \nhello world  ', highlights: [{ start: 9, end: 14 }] }, {});
-  assert.match(out, /“hello \[START HIGHLIGHT\] world \[END HIGHLIGHT\]”/);
+  assert.match(out, /“hello world” \/ HIGHLIGHT APPEARS OVER "world"$/);
 });
 
-test('a highlight in a long post is marked where it is, and only on the shot that quotes the post', () => {
+test('the desk’s example: a long post, two highlights, noted once after the quote on the shot that quotes it', () => {
+  const text = 'Defeated Republican Congressman Thomas Massie, a total loser, is trying to Impeach perhaps the most popular and successful military official in the Country, Secretary of War, Pete Hegseth. With recruitment at an ALL-TIME HIGH, from an all-time low under Sleepy Joe Biden, and TWO VICTORIES, Venezuela and Iran, Pete Hegseth should be praised, not Impeached. Congress, stand up for Pete!!! President DJT';
+  const r = phrase => ({ start: text.indexOf(phrase), end: text.indexOf(phrase) + phrase.length });
+  const out = buildShotlist({ ...trump, date: '2026-11-09', text, highlights: [r('Pete Hegseth should be praised, not Impeached.'), r('a total loser')] }, { scroll: true, openingCut: false, today: '2026-11-10' });
+  assert.equal(out, `INTERNET (NOVEMBER 10, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
+
+1. SCREENSHOT OF TRUTH SOCIAL POST BY US PRESIDENT, DONALD TRUMP, DATED NOVEMBER 9, 2026, READING (English):
+
+    “${text}” / HIGHLIGHTS APPEAR OVER "a total loser" AND "Pete Hegseth should be praised, not Impeached."
+
+2. SCREENSHOT OF SAME TRUMP TRUTH SOCIAL POST, SCROLLING DOWN`);
+});
+
+test('in a multi-paragraph post the note goes after the closing quote, once', () => {
   const text = 'First paragraph here.\n\nSecond paragraph with a key phrase inside it.';
   const at = text.indexOf('key phrase');
   const out = buildShotlist({ ...trump, text, highlights: [{ start: at, end: at + 10 }] }, { scroll: true, openingCut: true });
-  assert.equal((out.match(/\[START HIGHLIGHT\]/g) || []).length, 1);
-  assert.match(out, /\n    Second paragraph with a \[START HIGHLIGHT\] key phrase \[END HIGHLIGHT\] inside it\.”$/);
+  assert.equal((out.match(/HIGHLIGHT APPEARS/g) || []).length, 1);
+  assert.match(out, /\n    Second paragraph with a key phrase inside it\.” \/ HIGHLIGHT APPEARS OVER "key phrase"$/);
 });
 
 test('dateline is today; the post date appears as DATED only when it differs', () => {

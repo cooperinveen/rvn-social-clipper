@@ -244,9 +244,9 @@ function updateShotlist() {
   if (!state.post) return;
   const out = $('shotlistOut');
   out.textContent = '';
-  // Placeholders like [LANGUAGE] are marked so they are hard to miss; so are the highlight tags.
-  for (const part of shotlistText().split(/(\[(?:DATE|TITLE|NAME|LANGUAGE)\]|\[(?:START|END) HIGHLIGHT\])/)) {
-    if (/^\[(?:DATE|TITLE|NAME|LANGUAGE)\]$/.test(part) || /^\[(?:START|END) HIGHLIGHT\]$/.test(part)) {
+  // Placeholders like [LANGUAGE] are marked so they are hard to miss; so is the highlight note.
+  for (const part of shotlistText().split(/(\[(?:DATE|TITLE|NAME|LANGUAGE)\]|HIGHLIGHTS? APPEARS? OVER)/)) {
+    if (/^\[(?:DATE|TITLE|NAME|LANGUAGE)\]$/.test(part) || /^HIGHLIGHTS? APPEARS? OVER$/.test(part)) {
       const mark = document.createElement('span');
       mark.className = part.includes('HIGHLIGHT') ? 'hlm' : 'gap';
       mark.textContent = part;

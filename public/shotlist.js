@@ -11,14 +11,13 @@
 //
 //       "The post, exactly as written…"
 //
-// Highlighted passages are marked in the quote as [START HIGHLIGHT] … [END HIGHLIGHT] (a space inside each marker).
+// Highlighted passages are listed after the quote, so nothing is added inside the poster's words:
+//       "…the post…" / HIGHLIGHTS APPEAR OVER "a total loser" AND "should be praised."
 // Each CUT is a new shot: a hold that zooms and/or scrolls without a cut is one shot; a hold that
 // cuts straight to a scroll is two. The whole post is quoted once.
 
 export const DATELINE_SOURCE = 'SOCIAL MEDIA WEBSITE - Access All';
 const PLATFORM_NAMES = { x: 'X', truth: 'TRUTH SOCIAL' };
-export const HIGHLIGHT_START = '[START HIGHLIGHT]';
-export const HIGHLIGHT_END = '[END HIGHLIGHT]';
 const INLINE_MAX = 280;                       // a single paragraph up to this long is quoted on the shot line
 
 // 'YYYY-MM-DD' for an instant, read in a time zone.
@@ -76,23 +75,28 @@ export function shotsFor({ zoom, scroll, openingCut }) {
   return [{ motion: '', quote: true }];
 }
 
-// Put the markers around each range ({start, end} character offsets into `text`).
-export function markHighlights(text, ranges = []) {
-  let out = '', pos = 0;
+// The note that follows the quote, naming each highlighted passage in the order it appears
+// ({start, end} character offsets into `text`): HIGHLIGHT APPEARS OVER "a", or
+// HIGHLIGHTS APPEAR OVER "a", "b" AND "c". Empty when nothing is highlighted.
+export function highlightNote(text, ranges = []) {
+  const parts = [];
+  let pos = 0;
   for (const r of [...ranges].sort((a, b) => a.start - b.start)) {
     const start = Math.max(pos, r.start), end = Math.min(text.length, r.end);
     if (end <= start) continue;
-    out += `${text.slice(pos, start)}${HIGHLIGHT_START} ${text.slice(start, end)} ${HIGHLIGHT_END}`;
+    const words = text.slice(start, end).replace(/\s+/g, ' ').trim();   // a passage across lines reads as one
+    if (words) parts.push(`"${words}"`);
     pos = end;
   }
-  return out + text.slice(pos);
+  if (!parts.length) return '';
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} AND ${parts[parts.length - 1]}`;
+  return `${parts.length === 1 ? 'HIGHLIGHT APPEARS' : 'HIGHLIGHTS APPEAR'} OVER ${list}`;
 }
 
-// `shown` is the post with its highlight markers; `plain` is the post without them (for the length test).
-function quoteBlock(shown, plain) {
-  const paragraphs = shown.replace(/\r\n/g, '\n').trim().split('\n').map(l => l.trimEnd());   // trailing spaces are invisible; the words are untouched
-  const inline = paragraphs.length === 1 && plain.length <= INLINE_MAX;
-  if (inline) return { inline: `“${paragraphs[0]}”` };
+// The post in quotes: inline on the shot line if it's one short paragraph, else an indented block.
+function quoteBlock(text) {
+  const paragraphs = text.replace(/\r\n/g, '\n').trim().split('\n').map(l => l.trimEnd());   // trailing spaces are invisible; the words are untouched
+  if (paragraphs.length === 1 && text.length <= INLINE_MAX) return { inline: `“${paragraphs[0]}”` };
   const lines = [...paragraphs];
   lines[0] = `“${lines[0]}`;
   lines[lines.length - 1] = `${lines[lines.length - 1]}”`;
@@ -112,7 +116,8 @@ export function buildShotlist(fields, options = {}) {
   const raw = String(fields.text || '');
   const lead = raw.length - raw.trimStart().length;            // highlight offsets count from the untrimmed text
   const text = raw.trim();
-  const shown = markHighlights(text, (fields.highlights || []).map(r => ({ start: r.start - lead, end: r.end - lead })));
+  const note = highlightNote(text, (fields.highlights || []).map(r => ({ start: r.start - lead, end: r.end - lead })));
+  const after = note ? ` / ${note}` : '';
 
   const out = [`INTERNET (${datelineDate(today)}) (${DATELINE_SOURCE}) (MUTE)`];
   shotsFor(options).forEach((shot, i) => {
@@ -120,8 +125,8 @@ export function buildShotlist(fields, options = {}) {
     if (shot.motion) line += `, ${shot.motion}`;
     if (shot.quote && text) {
       line += `, READING (${language}):`;
-      const q = quoteBlock(shown, text);
-      out.push('', q.inline ? `${line} ${q.inline}` : `${line}\n\n${q.block}`);
+      const q = quoteBlock(text);
+      out.push('', q.inline ? `${line} ${q.inline}${after}` : `${line}\n\n${q.block}${after}`);
     } else {
       out.push('', line);
     }

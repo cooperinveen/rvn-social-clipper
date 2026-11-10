@@ -66,7 +66,7 @@ INTERNET (OCTOBER 26, 2026) (SOCIAL MEDIA WEBSITE - Access All) (MUTE)
   at 00:00 UTC is dated the day before), and the UTC date for X, which gives no time zone. Change it
   if the poster's local day differs. **Language** is named for every post, English included.
 - **Dateline vs post date.** The dateline shows today's date (the screenshot's). The post's own date goes in the first shot as `DATED OCTOBER 25, 2026`, and only when it differs from today. There is no ARCHIVE label.
-- **Highlights** are marked in the quote as `[START HIGHLIGHT] … [END HIGHLIGHT]` (with a space inside each marker).
+- **Highlights** are listed after the closing quote, in the order they appear — `/ HIGHLIGHTS APPEAR OVER "a total loser" AND "should be praised"` (`HIGHLIGHT APPEARS OVER` for one) — so nothing is added inside the poster's words.
 - Anything the app can't know is shown as a yellow `[PLACEHOLDER]`, never guessed — and **Copy shotlist** refuses until the title, name, date and language are all filled in, with a pop-up saying what's missing.
 
 ## Output

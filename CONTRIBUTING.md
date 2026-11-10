@@ -123,7 +123,7 @@ asking.
 example (`test/shotlist.test.js` reproduces it line for line). The rules that matter:
 - **A shot is a cut.** Zoom, or zoom then scroll, is one shot; scroll after a straight cut is two.
 - **Quote the whole post once, untouched** — no case changes, no trimming (only line-end spaces) —
-  with `[START HIGHLIGHT]` / `[END HIGHLIGHT]` around highlighted passages. Highlight offsets count
+  then `/ HIGHLIGHTS APPEAR OVER "…" AND "…"` after the closing quote. Highlight offsets count
   from the untrimmed text the page sends, exactly as `cleanRanges()` does (§2.5).
 - **Missing information is a visible `[PLACEHOLDER]`.** Never fill a title, date or language by
   guessing. `lib/title.js` answers only when a bio plainly says "<role> of <country>" or
