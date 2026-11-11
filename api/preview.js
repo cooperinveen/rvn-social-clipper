@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import { buildCard, readJson, sendError } from '../lib/pipeline.js';
 import { planFor, openingFrame } from '../lib/video.js';
+import { cardGate } from '../lib/limits.js';
 
 // POST { token, text?, highlights? } -> the video's opening frame as a 16:9 JPEG for each
 // opening-shot choice, plus what the UI needs to know: card height, number of highlighted
@@ -9,7 +10,10 @@ export default async function handler(req, res) {
   try {
     if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
     const body = readJson(req);
-    const { card } = await buildCard(body.token, body.text, body.highlights);
+    // Chromium is the memory-hungry part, so only a couple of cards are drawn at once.
+    let card;
+    const release = await cardGate.enter();
+    try { ({ card } = await buildCard(body.token, body.text, body.highlights)); } finally { release(); }
     const src = card.highlighted || card.clean;   // show highlights here so producers can check them
     const jpeg = async opening => `data:image/jpeg;base64,${(await sharp(await openingFrame(src, opening))
       .resize({ width: 1280 }).jpeg({ quality: 85 }).toBuffer()).toString('base64')}`;

@@ -73,6 +73,25 @@ test('X: a long post is refused, not truncated, when the lookup fails or disagre
   await assert.rejects(fetchPost('https://x.com/ada/status/1'), e => e.code === 'long_post_unavailable');
 });
 
+test('X long posts: the whole preview must match the start of the full text, not just its first 80 characters', async () => {
+  const preview = 'Hello world. ' + 'This sentence is from the preview. '.repeat(6) + 'Ends mid-wo';
+  const tampered = 'Hello world. ' + 'This sentence is from the preview. '.repeat(2) + 'Something else was swapped in here. ' + 'More. '.repeat(40);
+  routes.push(['syndication', 200, tweet({ text: preview, note_tweet: { id: 'x' } })], ['fxtwitter', 200, { tweet: { text: tampered } }]);
+  await assert.rejects(fetchPost('https://x.com/ada/status/1'), e => e.code === 'long_post_unavailable');
+  // the real one passes, even though the preview's last word was cut short
+  routes[1] = ['fxtwitter', 200, { tweet: { text: preview.replace('mid-wo', 'mid-word, and then much more. ') + 'More. '.repeat(40) } }];
+  assert.ok((await fetchPost('https://x.com/ada/status/1')).text.length > preview.length);
+});
+
+test('X long posts: t.co links in the preview vs real links in the full text still match; oversized text is refused', async () => {
+  const preview = 'Read this https://t.co/AbC123 &amp; tell me what you think about the plan for next week';
+  const full = 'Read this https://example.com/story & tell me what you think about the plan for next week and beyond. ' + 'More. '.repeat(40);
+  routes.push(['syndication', 200, tweet({ text: preview, note_tweet: { id: 'x' } })], ['fxtwitter', 200, { tweet: { text: full } }]);
+  assert.equal((await fetchPost('https://x.com/ada/status/1')).text, full.trimEnd());
+  routes[1] = ['fxtwitter', 200, { tweet: { text: full + 'x'.repeat(25000) } }];
+  await assert.rejects(fetchPost('https://x.com/ada/status/1'), e => e.code === 'long_post_unavailable');
+});
+
 test('X: missing, deleted and text-less posts give clear errors', async () => {
   routes.push(['syndication', 404, {}]);
   await assert.rejects(fetchPost('https://x.com/ada/status/1'), e => e.code === 'not_found');

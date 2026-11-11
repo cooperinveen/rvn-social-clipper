@@ -1,0 +1,25 @@
+# One public service, no volumes (renders use the container's temp folder and are deleted
+# once sent). Secrets are ${NAME} placeholders: EDEn asks for the real values in its portal;
+# locally, `docker compose` fills them from .env.
+#
+# HOSTED=1 makes the app refuse to start without SIGNING_SECRET and sign-in. To try the
+# container locally while sign-in is still off, override it (and give it a throwaway secret):
+#   SIGNING_SECRET=$(openssl rand -hex 32) docker compose run --rm --build -e HOSTED= -p 5003:5002 web
+#   -> http://localhost:5003
+services:
+  web:
+    build: .
+    ports:
+      - "5002:5002"
+    environment:
+      HOSTED: "1"
+      SIGNING_SECRET: ${SIGNING_SECRET}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+      REDIRECT_URI: ${REDIRECT_URI}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5002/healthz').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

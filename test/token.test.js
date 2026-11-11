@@ -1,10 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 
-process.env.SIGNING_SECRET = 'test-secret';
+process.env.SIGNING_SECRET = 'test-secret-0123456789abcdef0123456789';
 const { signPost, verifyPost, textEditAllowed, TokenError } = await import('../lib/token.js');
 
 const post = { platform: 'x', id: '1', name: 'A Name', handle: 'handle', verified: true, avatarUrl: null, text: 'The quick brown fox jumps over the lazy dog.' };
+
+test('a short SIGNING_SECRET is refused (the server checks this at startup)', () => {
+  const r = spawnSync(process.execPath, ['--input-type=module', '-e', "import('./lib/token.js').then(m => m.ensureSecret())"],
+    { env: { ...process.env, SIGNING_SECRET: 'short' }, encoding: 'utf8' });
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /SIGNING_SECRET is too short/);
+});
 
 test('a signed post verifies and round-trips', () => {
   const back = verifyPost(signPost(post));

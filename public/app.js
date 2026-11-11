@@ -400,9 +400,22 @@ $('makeBtn').onclick = async () => {
   const t0 = Date.now();
   const label = $('makeBtn').textContent;
   $('makeBtn').innerHTML = '<span class="spin"></span> Rendering…';
-  const tick = setInterval(() => say($('makeMsg'), `Rendering… ${Math.round((Date.now() - t0) / 1000)}s. Long scrolls can take a minute or two — keep this tab open.`), 500);
+  // The server renders one video at a time; the ticket lets us ask where ours is in line.
+  const ticket = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2) + Date.now().toString(36);
+  let ahead = null, renderStart = null;
+  const poll = setInterval(async () => {
+    try {
+      const q = await (await fetch('/api/queue?ticket=' + encodeURIComponent(ticket))).json();
+      if (q.state === 'waiting') ahead = q.ahead;
+      else if (q.state === 'rendering' && renderStart === null) { ahead = null; renderStart = Date.now(); }
+    } catch { /* status is a nicety; the render itself carries on */ }
+  }, 1500);
+  const tick = setInterval(() => say($('makeMsg'), ahead !== null
+    ? `Waiting for ${ahead || 1} other video${ahead > 1 ? 's' : ''} to finish first. Keep this tab open.`
+    : `Rendering… ${Math.round((Date.now() - (renderStart ?? t0)) / 1000)}s. Long scrolls can take a few minutes. Keep this tab open.`), 500);
   try {
     const res = await api('render', {
+      ticket,
       ...postFields(),
       format: checked('format'),
       opening: checked('opening'),
@@ -427,6 +440,7 @@ $('makeBtn').onclick = async () => {
     say($('makeMsg'), err.message, 'err');
   } finally {
     clearInterval(tick);
+    clearInterval(poll);
     state.busy = false;
     $('makeBtn').textContent = label;
     refreshButtons();

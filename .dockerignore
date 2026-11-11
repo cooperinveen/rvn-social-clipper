@@ -1,0 +1,12 @@
+# Kept out of the container image
+node_modules/
+.git/
+.env
+.signing-secret
+.corp-ca.pem
+.runtime/
+.vercel/
+test/
+*.log
+.DS_Store
+start.command

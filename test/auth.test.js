@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 process.env.AZURE_CLIENT_ID = '00000000-0000-0000-0000-000000000001';
 process.env.AZURE_TENANT_ID = '00000000-0000-0000-0000-000000000002';
 process.env.AZURE_CLIENT_SECRET = 'test-secret';
-process.env.SIGNING_SECRET = 'test-signing-secret';
+process.env.SIGNING_SECRET = 'test-signing-secret-0123456789abcdef01234';
 const { requireUser, currentUser, sessionValue, isAllowedEmail, handleAuth, AuthError } = await import('../lib/auth.js');
 const { readJson, sendError } = await import('../lib/pipeline.js');
 

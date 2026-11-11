@@ -33,10 +33,15 @@ clear message** rather than quietly produce something degraded.
   frame-by-frame JavaScript. This is deliberate — it is why the same code runs on a laptop and
   in a serverless function.
 
-- **Three endpoints, three files** (`api/post.js`, `api/preview.js`, `api/render.js`). They are
-  Vercel-format handlers; `server.js` is only a local shim that serves `public/` and calls the
-  same handlers. There is no database and no session — every request is self-contained, which
-  is also why the signed token exists.
+- **Three endpoints, three files** (`api/post.js`, `api/preview.js`, `api/render.js`), plus
+  `api/queue.js`, which only reports where a render is in line. They are Vercel-format handlers;
+  `server.js` serves `public/`, calls the same handlers and adds the security headers. There is
+  no database and no session — every request is self-contained, which is also why the signed
+  token exists.
+- **One render at a time** (`lib/limits.js`). Renders wait in line (default 1 running, 8
+  waiting), each person can have one in the system, and API calls and renders are rate-limited
+  per person. Closing the tab drops a waiting render or stops ffmpeg. All in memory, which
+  suits a single container.
 
 - **The front end is plain.** `public/app.js` and `help.js` are ES modules loaded straight from
   the page — no framework, no bundler, no build step. Don't introduce one for a small feature.
@@ -264,7 +269,9 @@ result looks like in the video — then review against §2 before you run it.
 | The video — timeline, zoom, scroll, interlacing, `CONFIG` | `lib/video.js` |
 | The shotlist text | `public/shotlist.js` |
 | Suggesting a shotlist title from a bio | `lib/title.js` |
-| API handlers | `api/post.js`, `api/preview.js`, `api/render.js` |
+| API handlers | `api/post.js`, `api/preview.js`, `api/render.js`, `api/queue.js` |
+| Render line and rate limits | `lib/limits.js` |
+| Container | `Dockerfile`, `docker-compose.yml` |
 | Local server | `server.js` |
 | Page, styling, behaviour | `public/index.html`, `style.css`, `app.js` |
 | In-app manual | `public/help.js` |

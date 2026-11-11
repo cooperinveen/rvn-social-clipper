@@ -170,8 +170,10 @@ rvn-social-clipper/
 ├── api/                  # Vercel-style handlers: (req, res) functions, one per endpoint
 │   ├── post.js           #   POST {url}            → { post, token }
 │   ├── preview.js        #   POST {token, …}       → first-frame JPEGs + facts for the UI
-│   └── render.js         #   POST {token, …opts}   → the .mov, streamed
+│   ├── render.js         #   POST {token, …opts}   → the .mov, streamed (waits its turn)
+│   └── queue.js          #   GET ?ticket=…         → where a render is in line
 ├── lib/
+│   ├── limits.js         # render line, one-per-person, rate limits
 │   ├── sources.js        # fetch a post from X / Truth Social as data
 │   ├── token.js          # sign / verify fetched posts; the text-edit rule
 │   ├── title.js          # suggest a shotlist title from a poster's bio
@@ -184,7 +186,8 @@ rvn-social-clipper/
 │   ├── shotlist.js       # builds the shotlist text (pure functions; also used by the tests)
 │   └── fonts/  images/   # Clario font and TR logo
 ├── test/                 # node:test suites
-├── server.js             # local dev server (serves public/ and api/)
+├── server.js             # server: serves public/ and api/, security headers, /healthz
+├── Dockerfile  docker-compose.yml   # the container (for EDEn; see the comment in the compose file)
 └── .env.example
 ```
 

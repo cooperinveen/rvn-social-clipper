@@ -116,3 +116,14 @@ test('zoom from the whole post is refused on very tall cards, with a clear error
 test('bad format is refused', async () => {
   await assert.rejects(renderVideo(await card(900), { format: '24p' }, path.join(tmp, 'y.mov')), /60i or 50i/);
 });
+
+test('a cancelled render stops ffmpeg straight away (the producer closed the tab)', async () => {
+  const ac = new AbortController();
+  const out = path.join(tmp, 'cancelled.mov');
+  const t0 = Date.now();
+  const p = renderVideo(await card(6000), { scroll: true, scrollSeconds: 60, signal: ac.signal }, out);
+  setTimeout(() => ac.abort(), 1500);
+  await assert.rejects(p, e => e.name === 'AbortError');
+  assert.ok(Date.now() - t0 < 6000, `took ${Date.now() - t0} ms to stop`);
+  await assert.rejects(renderVideo(await card(900), { signal: AbortSignal.abort() }, out), e => e.name === 'AbortError');
+});
